@@ -47,190 +47,198 @@ body{font-family:'Tajawal',sans-serif;background:var(--ink);color:var(--text);di
 .inv-table th{padding:10px 12px;font-size:11px;font-weight:800;color:#4a6080;text-align:right;}
 .inv-table td{padding:12px 12px;font-size:13px;border-bottom:1px solid #f0f4f8;color:#1a2332;vertical-align:middle;}
 .inv-table tr:last-child td{border-bottom:none;}
-.item-img{width:40px;height:40px;border-radius:8px;object-fit:cover;margin-left:8px;vertical-align:middle;background:#f0f4f8;}
-.item-emoji{font-size:28px;margin-left:8px;vertical-align:middle;}
-.qty-cell{color:#0064c8;font-weight:700;text-align:center;}
-.price-cell{font-weight:700;text-align:center;}
-.total-cell{font-weight:900;color:#0a3d30;text-align:center;}
-.inv-totals{border-top:2px dashed #e8eef5;padding-top:16px;display:flex;flex-direction:column;gap:7px;}
-.inv-total-row{display:flex;justify-content:space-between;}
-.inv-total-row .lbl{font-size:13px;color:#7a8fa8;font-weight:600;}
-.inv-total-row .amt{font-size:13px;font-weight:700;}
-.inv-total-row.grand .lbl{font-size:15px;font-weight:800;color:#1a2332;}
-.inv-total-row.grand .amt{font-size:20px;font-weight:900;color:#00a589;}
-.inv-footer{background:#f7fbff;border-top:1px solid #e8eef5;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;}
-.inv-footer-note{font-size:11px;color:#7a8fa8;}
-.inv-status-chip{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:800;}
-.status-pending{background:#fff8e1;color:#f59e0b;}
-.status-confirmed{background:#e0f7f4;color:#00a589;}
-.status-delivered{background:#e8f5e9;color:#22c55e;}
-.status-cancelled{background:#fce4ec;color:#e91e63;}
+.item-img{width:40px;height:40px;border-radius:8px;object-fit:cover;margin-left:8px;vertical-align:middle;}
+.inv-totals{width:260px;margin-right:auto;display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid #f0f4f8;}
+.inv-total-row{display:flex;justify-content:space-between;font-size:13px;color:#5e7290;}
+.inv-total-row.grand{font-size:16px;font-weight:900;color:#1a2332;margin-top:4px;padding-top:8px;border-top:1px solid #e8eef5;}
+.inv-total-row.grand .amt{color:#ff4d6d;font-size:19px;}
+.inv-footer{background:#f8fafc;border-top:1px solid #f0f4f8;padding:24px 32px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#7a8fa8;}
+.inv-footer-note{font-weight:700;color:#0b1120;margin-bottom:2px;}
 
-/* ── LOADING / ERROR ── */
-.center-state{text-align:center;padding:80px 20px;color:var(--muted);}
-.center-state .em{font-size:64px;margin-bottom:16px;}
-.spin{display:inline-block;animation:spin 1s linear infinite;font-size:48px;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-@media print{
-  @page{size:A4;margin:15mm;}
-  body{background:white!important;padding:0!important;}
-  .screen-wrap{max-width:100%!important;}
-  .topbar,.success-banner,.action-btns{display:none!important;}
-  .invoice{box-shadow:none!important;border:1px solid #ddd!important;border-radius:0!important;}
-  .inv-header{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .inv-table thead tr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-}
+#loader{padding:60px;text-align:center;font-size:16px;color:var(--muted);font-weight:700;}
+#errBlock{background:rgba(255,77,109,.08);border:1px solid rgba(255,77,109,.2);border-radius:16px;padding:24px;text-align:center;color:var(--danger);font-weight:700;display:none;margin-top:40px;}
+#invoiceCard{display:none;}
 </style>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
+
 <div class="screen-wrap">
   <div class="topbar">
-    <div class="logo">💊 دواؤك<span class="logo-dot">.</span></div>
+    <div class="logo">دواؤك<span class="logo-dot">.</span></div>
     <div class="action-btns">
-      <button class="btn btn-ghost" onclick="location.href='https://exquisite-entremet-a37eef.netlify.app/'">🏪 الموقع</button>
-      <button class="btn btn-teal" onclick="window.print()">⬇️ تنزيل الفاتورة</button>
+      <button class="btn btn-ghost" onclick="window.location.href='https://dawa0k.vercel.app'">العودة للموقع الرئيسي</button>
+      <button class="btn btn-teal" onclick="window.print()">🖨️ طباعة الفاتورة</button>
     </div>
   </div>
-  <div id="mainContent">
-    <div class="center-state"><div class="spin">⏳</div><br><br>جاري تحميل الفاتورة...</div>
-  </div>
-</div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  <div id="loader">⏳ جاري تحميل بيانات الفاتورة الرقمية...</div>
+  <div id="errBlock">❌ عذراً، لم نتمكن من العثور على تفاصيل الفاتورة المطلوبة. يرجى مراجعة الرابط.</div>
 
-const app = initializeApp({
-  apiKey:"AIzaSyBcCT43XKkhgS3kmz-Elox4k9tns1wXQwY",
-  authDomain:"pharmacy-b198d.firebaseapp.com",
-  projectId:"pharmacy-b198d",
-  storageBucket:"pharmacy-b198d.firebasestorage.app",
-  messagingSenderId:"974383902275",
-  appId:"1:974383902275:web:5dd88e49eb3675dceaaef6"
-});
-const db = getFirestore(app);
-
-const el = document.getElementById('mainContent');
-
-// ── GET ORDER ID FROM URL ──
-const params  = new URLSearchParams(window.location.search);
-const orderId = params.get('order');
-
-if(!orderId){
-  showNotFound();
-} else {
-  loadOrder(orderId);
-}
-
-async function loadOrder(id){
-  try{
-    const snap = await getDoc(doc(db,'orders',id));
-    if(!snap.exists()){ showNotFound(); return; }
-    const data = { docId: snap.id, ...snap.data() };
-    renderInvoice(data);
-  } catch(e){
-    el.innerHTML = `<div class="center-state"><div class="em">❌</div><p>حصل خطأ: ${e.message}</p></div>`;
-  }
-}
-
-function showNotFound(){
-  el.innerHTML = `
-    <div class="center-state">
-      <div class="em">🧾</div>
-      <h2 style="color:var(--text);margin-bottom:8px;">مفيش فاتورة</h2>
-      <p>اتجه للمتجر وأتم طلبك أولاً</p><br>
-      <button class="btn btn-teal" onclick="location.href='https://exquisite-entremet-a37eef.netlify.app/'" style="margin:auto;">🏪 روح للمتجر</button>
-    </div>`;
-}
-
-function statusInfo(s){
-  return {
-    pending:   ['في الانتظار','status-pending'],
-    confirmed: ['مؤكد','status-confirmed'],
-    delivered: ['تم التوصيل','status-delivered'],
-    cancelled: ['ملغي','status-cancelled']
-  }[s] || ['—','status-pending'];
-}
-
-function renderInvoice(data){
-  const [sLabel,sCls] = statusInfo(data.status||'pending');
-  const subtotal   = data.total || 0;
-  const delivery   = 25;
-  const grandTotal = subtotal + delivery;
-  const createdAt  = data.createdAt?.toDate
-    ? data.createdAt.toDate().toLocaleString('ar-EG')
-    : (data.createdAt || new Date().toLocaleString('ar-EG'));
-
-  const itemsHTML = (data.items||[]).map(item => {
-    const thumb = item.imageUrl
-      ? `<img class="item-img" src="${item.imageUrl}" alt="${item.name}">`
-      : `<span class="item-emoji">${item.emoji||'💊'}</span>`;
-    return `<tr>
-      <td>${thumb}${item.name}</td>
-      <td class="qty-cell">${item.qty}</td>
-      <td class="price-cell">${item.price} ج</td>
-      <td class="total-cell">${item.price*item.qty} ج</td>
-    </tr>`;
-  }).join('');
-
-  el.innerHTML = `
+  <div id="invoiceCard">
     <div class="success-banner">
-      <div class="success-icon">🎉</div>
+      <span class="success-icon">🎉</span>
       <div class="success-text">
-        <h3>تم استلام طلبك بنجاح!</h3>
-        <p>فريقنا بيجهز طلبك دلوقتي — هتوصلك في أقرب وقت</p>
+        <h3>شكراً لك! تم إرسال طلبك بنجاح</h3>
+        <p>تجد أدناه تفاصيل الفاتورة الرسمية الخاصة بطلبك للرجوع إليها في أي وقت.</p>
       </div>
     </div>
-    <div class="invoice" id="invoicePrint">
+
+    <div class="invoice">
       <div class="inv-header">
         <div>
-          <div class="inv-brand-name">💊 دواؤك</div>
-          <div class="inv-brand-sub">صيدليتك الإلكترونية</div>
-          <div class="inv-brand-sub" style="margin-top:6px;">📞 19998 &nbsp;|&nbsp; dawaok.com</div>
+          <div class="inv-brand-name">دواؤك</div>
+          <div class="inv-brand-sub">صيدليتك الذكية أينما كنت</div>
         </div>
-        <div style="text-align:center;">
-          <div class="inv-badge">
-            <div class="inv-badge-label">رقم الطلب</div>
-            <div class="inv-badge-val">${data.orderId||data.docId.slice(0,10)}</div>
-          </div>
-          <div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:8px;">${createdAt}</div>
+        <div class="inv-badge">
+          <div class="inv-badge-label">رقم الطلب الإلكتروني</div>
+          <div class="inv-badge-val" id="orderIdText">—</div>
         </div>
       </div>
+      
       <div class="inv-body">
         <div class="inv-meta">
           <div class="inv-meta-block">
             <label>بيانات العميل</label>
-            <div class="val">${data.customer?.name||'—'}</div>
-            <div class="val hl">📞 ${data.customer?.phone||'—'}</div>
-            <div style="font-size:12px;color:#7a8fa8;margin-top:4px;">📍 ${data.customer?.address||'—'}</div>
+            <div class="val hl" id="custName">—</div>
+            <div style="color:#5e7290;margin-top:4px;" id="custPhone">—</div>
+            <div style="color:#7a8fa8;margin-top:4px;" id="custAddress">📍 —</div>
           </div>
           <div class="inv-meta-block" style="text-align:left;">
             <label>تفاصيل الفاتورة</label>
-            <div class="val">تاريخ: ${createdAt}</div>
-            <div style="margin-top:8px;"><span class="inv-status-chip ${sCls}">${sLabel}</span></div>
+            <div class="val" id="createdAtText">تاريخ: —</div>
+            <div style="margin-top:8px;"><span class="inv-status-chip" id="statusChip">—</span></div>
           </div>
         </div>
+        
         <table class="inv-table">
-          <thead><tr><th>المنتج</th><th style="text-align:center;">الكمية</th><th style="text-align:center;">سعر الوحدة</th><th style="text-align:center;">الإجمالي</th></tr></thead>
-          <tbody>${itemsHTML}</tbody>
+          <thead>
+            <tr>
+              <th>المنتج</th>
+              <th style="text-align:center;">الكمية</th>
+              <th style="text-align:center;">سعر الوحدة</th>
+              <th style="text-align:center;">الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody id="itemsTableBody"></tbody>
         </table>
+        
         <div class="inv-totals">
-          <div class="inv-total-row"><span class="lbl">المجموع الفرعي</span><span class="amt">${subtotal} جنيه</span></div>
-          <div class="inv-total-row"><span class="lbl">رسوم التوصيل</span><span class="amt">${delivery} جنيه</span></div>
+          <div class="inv-total-row"><span class="lbl">المجموع الفرعي</span><span class="amt" id="subtotalText">0 جنيه</span></div>
+          <div class="inv-total-row"><span class="lbl">رسوم التوصيل</span><span class="amt" id="deliveryText">0 جنيه</span></div>
           <div class="inv-total-row"><span class="lbl">الضريبة</span><span class="amt">0 جنيه</span></div>
-          <div class="inv-total-row grand"><span class="lbl">الإجمالي الكلي</span><span class="amt">${grandTotal} جنيه</span></div>
+          <div class="inv-total-row grand"><span class="lbl">الإجمالي الكلي</span><span class="amt" id="grandTotalText">0 جنيه</span></div>
         </div>
       </div>
+      
       <div class="inv-footer">
         <div>
           <div class="inv-footer-note">شكراً لثقتك في دواؤك 💙</div>
-          <div class="inv-footer-note">هذه فاتورة إلكترونية معتمدة</div>
+          <div>للدعم الطبي والاستفسارات تواصل معنا عبر الموقع الرئيسي.</div>
         </div>
-        <div style="font-size:36px;">🔲</div>
+        <div style="text-align:left;font-size:10px;opacity:.6;">نظام دواؤك الآلي</div>
       </div>
-    </div>`;
+    </div>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAs7...",
+  authDomain: "dawa0k-eb375.firebaseapp.com",
+  projectId: "dawa0k-eb375",
+  storageBucket: "dawa0k-eb375.appspot.com",
+  messagingSenderId: "367375620921",
+  appId: "1:367375620921:web:ca423bb006a8e63b65f4ff"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function getQueryParam(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
 }
+
+async function loadInvoice() {
+  const id = getQueryParam('order');
+  if(!id) { showErr(); return; }
+  
+  try {
+    const doc = await db.collection('orders').doc(id).get();
+    if(!doc.exists) { showErr(); return; }
+    
+    const data = doc.data();
+    
+    // Fill text
+    document.getElementById('orderIdText').innerText = data.orderId || '—';
+    document.getElementById('custName').innerText = data.customer?.name || '—';
+    document.getElementById('custPhone').innerText = data.customer?.phone || '—';
+    document.getElementById('custAddress').innerText = '📍 ' + (data.customer?.address || '—');
+    
+    // Date format
+    let dateStr = '—';
+    if(data.createdAt) {
+      const dt = data.createdAt.toDate();
+      dateStr = dt.toLocaleDateString('ar-EG', {year:'numeric', month:'short', day:'numeric'}) + ' ' + dt.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
+    }
+    document.getElementById('createdAtText').innerText = 'تاريخ: ' + dateStr;
+    
+    // Status
+    const chip = document.getElementById('statusChip');
+    chip.innerText = data.status === 'pending' ? 'جاري المراجعة' : (data.status === 'confirmed' ? 'تم التأكيد' : (data.status === 'delivered' ? 'تم التوصيل' : 'ملغي'));
+    chip.style.background = data.status === 'pending' ? '#fff3cd' : (data.status === 'confirmed' ? '#d1ecf1' : (data.status === 'delivered' ? '#d4edda' : '#f8d7da'));
+    chip.style.color = data.status === 'pending' ? '#856404' : (data.status === 'confirmed' ? '#0c5460' : (data.status === 'delivered' ? '#155724' : '#721c24'));
+    chip.style.padding = '4px 10px';
+    chip.style.borderRadius = '8px';
+    chip.style.fontSize = '12px';
+    chip.style.fontWeight = 'bold';
+
+    // Render Items
+    const tbody = document.getElementById('itemsTableBody');
+    let subtotal = 0;
+    let itemsHTML = '';
+    
+    if(data.items && data.items.length) {
+      data.items.forEach(x => {
+        const itemTotal = x.price * x.qty;
+        subtotal += itemTotal;
+        itemsHTML += `
+          <tr>
+            <td>
+              <span style="font-size:18px;margin-left:6px;vertical-align:middle;">${x.emoji||'📦'}</span>
+              <span style="font-weight:700;">${x.name}</span>
+            </td>
+            <td style="text-align:center;font-weight:700;">${x.qty}</td>
+            <td style="text-align:center;">${x.price} جنيه</td>
+            <td style="text-align:center;font-weight:800;color:#00c9a7;">${itemTotal} جنيه</td>
+          </tr>
+        `;
+      });
+    }
+    tbody.innerHTML = itemsHTML;
+    
+    const delivery = 20; // Default or fetched from data if any
+    document.getElementById('subtotalText').innerText = subtotal + ' جنيه';
+    document.getElementById('deliveryText').innerText = delivery + ' جنيه';
+    document.getElementById('grandTotalText').innerText = (subtotal + delivery) + ' جنيه';
+    
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('invoiceCard').style.display = 'block';
+
+  } catch(e) {
+    console.error(e);
+    showErr();
+  }
+}
+
+function showErr() {
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('errBlock').style.display = 'block';
+}
+
+window.onload = loadInvoice;
 </script>
 </body>
 </html>
