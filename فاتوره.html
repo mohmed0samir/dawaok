@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>فاتورة — دواؤك</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#070d18;--teal:#00c9a7;--gold:#f5c842;--success:#22c55e;
+  --danger:#ff4d6d;--border:rgba(255,255,255,0.08);
+  --text:#dde4f0;--muted:#5e7290;--card:#0f1c2e;--card2:#162135;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Tajawal',sans-serif;background:var(--ink);color:var(--text);direction:rtl;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 16px;}
+.screen-wrap{width:100%;max-width:700px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.logo{font-size:22px;font-weight:900;color:var(--teal);display:flex;align-items:center;gap:6px;}
+.logo-dot{color:var(--gold);}
+.action-btns{display:flex;gap:10px;}
+.btn{border:none;border-radius:12px;padding:11px 22px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;}
+.btn-teal{background:var(--teal);color:white;box-shadow:0 4px 16px rgba(0,201,167,.3);}
+.btn-teal:hover{background:#00a589;transform:translateY(-1px);}
+.btn-ghost{background:var(--card2);color:var(--text);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--teal);color:var(--teal);}
+.success-banner{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:20px 24px;display:flex;align-items:center;gap:16px;margin-bottom:24px;animation:fadeUp .5s ease both;}
+.success-icon{font-size:40px;flex-shrink:0;}
+.success-text h3{font-size:18px;font-weight:800;color:var(--success);margin-bottom:4px;}
+.success-text p{font-size:13px;color:var(--muted);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── INVOICE (white) ── */
+.invoice{background:white;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:fadeUp .5s .1s ease both;}
+.inv-header{background:linear-gradient(135deg,#0a2540 0%,#0a3d30 100%);padding:28px 32px;display:flex;justify-content:space-between;align-items:flex-start;}
+.inv-brand-name{font-size:26px;font-weight:900;color:#00c9a7;margin-bottom:4px;}
+.inv-brand-sub{font-size:12px;color:rgba(255,255,255,.6);}
+.inv-badge{background:rgba(0,201,167,.15);border:1px solid rgba(0,201,167,.3);border-radius:12px;padding:10px 16px;text-align:center;}
+.inv-badge-label{font-size:10px;color:rgba(255,255,255,.5);font-weight:700;margin-bottom:3px;}
+.inv-badge-val{font-size:13px;font-weight:900;color:#00c9a7;}
+.inv-body{padding:28px 32px;background:white;color:#1a2332;}
+.inv-meta{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;padding-bottom:20px;border-bottom:2px dashed #e8eef5;}
+.inv-meta-block label{font-size:10px;font-weight:800;color:#7a8fa8;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.inv-meta-block .val{font-size:14px;font-weight:700;color:#1a2332;}
+.inv-meta-block .val.hl{color:#0064c8;}
+.inv-table{width:100%;border-collapse:collapse;margin-bottom:20px;}
+.inv-table thead tr{background:#f0f7ff;}
+.inv-table th{padding:10px 12px;font-size:11px;font-weight:800;color:#4a6080;text-align:right;}
+.inv-table td{padding:12px 12px;font-size:13px;border-bottom:1px solid #f0f4f8;color:#1a2332;vertical-align:middle;}
+.inv-table tr:last-child td{border-bottom:none;}
+.item-img{width:40px;height:40px;border-radius:8px;object-fit:cover;margin-left:8px;vertical-align:middle;background:#f0f4f8;}
+.item-emoji{font-size:28px;margin-left:8px;vertical-align:middle;}
+.qty-cell{color:#0064c8;font-weight:700;text-align:center;}
+.price-cell{font-weight:700;text-align:center;}
+.total-cell{font-weight:900;color:#0a3d30;text-align:center;}
+.inv-totals{border-top:2px dashed #e8eef5;padding-top:16px;display:flex;flex-direction:column;gap:7px;}
+.inv-total-row{display:flex;justify-content:space-between;}
+.inv-total-row .lbl{font-size:13px;color:#7a8fa8;font-weight:600;}
+.inv-total-row .amt{font-size:13px;font-weight:700;}
+.inv-total-row.grand .lbl{font-size:15px;font-weight:800;color:#1a2332;}
+.inv-total-row.grand .amt{font-size:20px;font-weight:900;color:#00a589;}
+.inv-footer{background:#f7fbff;border-top:1px solid #e8eef5;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;}
+.inv-footer-note{font-size:11px;color:#7a8fa8;}
+.inv-status-chip{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:800;}
+.status-pending{background:#fff8e1;color:#f59e0b;}
+.status-confirmed{background:#e0f7f4;color:#00a589;}
+.status-delivered{background:#e8f5e9;color:#22c55e;}
+.status-cancelled{background:#fce4ec;color:#e91e63;}
+
+/* ── LOADING / ERROR ── */
+.center-state{text-align:center;padding:80px 20px;color:var(--muted);}
+.center-state .em{font-size:64px;margin-bottom:16px;}
+.spin{display:inline-block;animation:spin 1s linear infinite;font-size:48px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media print{
+  @page{size:A4;margin:15mm;}
+  body{background:white!important;padding:0!important;}
+  .screen-wrap{max-width:100%!important;}
+  .topbar,.success-banner,.action-btns{display:none!important;}
+  .invoice{box-shadow:none!important;border:1px solid #ddd!important;border-radius:0!important;}
+  .inv-header{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .inv-table thead tr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+</style>
+</head>
+<body>
+<div class="screen-wrap">
+  <div class="topbar">
+    <div class="logo">💊 دواؤك<span class="logo-dot">.</span></div>
+    <div class="action-btns">
+      <button class="btn btn-ghost" onclick="location.href='https://exquisite-entremet-a37eef.netlify.app/'">🏪 الموقع</button>
+      <button class="btn btn-teal" onclick="window.print()">⬇️ تنزيل الفاتورة</button>
+    </div>
+  </div>
+  <div id="mainContent">
+    <div class="center-state"><div class="spin">⏳</div><br><br>جاري تحميل الفاتورة...</div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyBcCT43XKkhgS3kmz-Elox4k9tns1wXQwY",
+  authDomain:"pharmacy-b198d.firebaseapp.com",
+  projectId:"pharmacy-b198d",
+  storageBucket:"pharmacy-b198d.firebasestorage.app",
+  messagingSenderId:"974383902275",
+  appId:"1:974383902275:web:5dd88e49eb3675dceaaef6"
+});
+const db = getFirestore(app);
+
+const el = document.getElementById('mainContent');
+
+// ── GET ORDER ID FROM URL ──
+const params  = new URLSearchParams(window.location.search);
+const orderId = params.get('order');
+
+if(!orderId){
+  showNotFound();
+} else {
+  loadOrder(orderId);
+}
+
+async function loadOrder(id){
+  try{
+    const snap = await getDoc(doc(db,'orders',id));
+    if(!snap.exists()){ showNotFound(); return; }
+    const data = { docId: snap.id, ...snap.data() };
+    renderInvoice(data);
+  } catch(e){
+    el.innerHTML = `<div class="center-state"><div class="em">❌</div><p>حصل خطأ: ${e.message}</p></div>`;
+  }
+}
+
+function showNotFound(){
+  el.innerHTML = `
+    <div class="center-state">
+      <div class="em">🧾</div>
+      <h2 style="color:var(--text);margin-bottom:8px;">مفيش فاتورة</h2>
+      <p>اتجه للمتجر وأتم طلبك أولاً</p><br>
+      <button class="btn btn-teal" onclick="location.href='https://exquisite-entremet-a37eef.netlify.app/'" style="margin:auto;">🏪 روح للمتجر</button>
+    </div>`;
+}
+
+function statusInfo(s){
+  return {
+    pending:   ['في الانتظار','status-pending'],
+    confirmed: ['مؤكد','status-confirmed'],
+    delivered: ['تم التوصيل','status-delivered'],
+    cancelled: ['ملغي','status-cancelled']
+  }[s] || ['—','status-pending'];
+}
+
+function renderInvoice(data){
+  const [sLabel,sCls] = statusInfo(data.status||'pending');
+  const subtotal   = data.total || 0;
+  const delivery   = 25;
+  const grandTotal = subtotal + delivery;
+  const createdAt  = data.createdAt?.toDate
+    ? data.createdAt.toDate().toLocaleString('ar-EG')
+    : (data.createdAt || new Date().toLocaleString('ar-EG'));
+
+  const itemsHTML = (data.items||[]).map(item => {
+    const thumb = item.imageUrl
+      ? `<img class="item-img" src="${item.imageUrl}" alt="${item.name}">`
+      : `<span class="item-emoji">${item.emoji||'💊'}</span>`;
+    return `<tr>
+      <td>${thumb}${item.name}</td>
+      <td class="qty-cell">${item.qty}</td>
+      <td class="price-cell">${item.price} ج</td>
+      <td class="total-cell">${item.price*item.qty} ج</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="success-banner">
+      <div class="success-icon">🎉</div>
+      <div class="success-text">
+        <h3>تم استلام طلبك بنجاح!</h3>
+        <p>فريقنا بيجهز طلبك دلوقتي — هتوصلك في أقرب وقت</p>
+      </div>
+    </div>
+    <div class="invoice" id="invoicePrint">
+      <div class="inv-header">
+        <div>
+          <div class="inv-brand-name">💊 دواؤك</div>
+          <div class="inv-brand-sub">صيدليتك الإلكترونية</div>
+          <div class="inv-brand-sub" style="margin-top:6px;">📞 19998 &nbsp;|&nbsp; dawaok.com</div>
+        </div>
+        <div style="text-align:center;">
+          <div class="inv-badge">
+            <div class="inv-badge-label">رقم الطلب</div>
+            <div class="inv-badge-val">${data.orderId||data.docId.slice(0,10)}</div>
+          </div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:8px;">${createdAt}</div>
+        </div>
+      </div>
+      <div class="inv-body">
+        <div class="inv-meta">
+          <div class="inv-meta-block">
+            <label>بيانات العميل</label>
+            <div class="val">${data.customer?.name||'—'}</div>
+            <div class="val hl">📞 ${data.customer?.phone||'—'}</div>
+            <div style="font-size:12px;color:#7a8fa8;margin-top:4px;">📍 ${data.customer?.address||'—'}</div>
+          </div>
+          <div class="inv-meta-block" style="text-align:left;">
+            <label>تفاصيل الفاتورة</label>
+            <div class="val">تاريخ: ${createdAt}</div>
+            <div style="margin-top:8px;"><span class="inv-status-chip ${sCls}">${sLabel}</span></div>
+          </div>
+        </div>
+        <table class="inv-table">
+          <thead><tr><th>المنتج</th><th style="text-align:center;">الكمية</th><th style="text-align:center;">سعر الوحدة</th><th style="text-align:center;">الإجمالي</th></tr></thead>
+          <tbody>${itemsHTML}</tbody>
+        </table>
+        <div class="inv-totals">
+          <div class="inv-total-row"><span class="lbl">المجموع الفرعي</span><span class="amt">${subtotal} جنيه</span></div>
+          <div class="inv-total-row"><span class="lbl">رسوم التوصيل</span><span class="amt">${delivery} جنيه</span></div>
+          <div class="inv-total-row"><span class="lbl">الضريبة</span><span class="amt">0 جنيه</span></div>
+          <div class="inv-total-row grand"><span class="lbl">الإجمالي الكلي</span><span class="amt">${grandTotal} جنيه</span></div>
+        </div>
+      </div>
+      <div class="inv-footer">
+        <div>
+          <div class="inv-footer-note">شكراً لثقتك في دواؤك 💙</div>
+          <div class="inv-footer-note">هذه فاتورة إلكترونية معتمدة</div>
+        </div>
+        <div style="font-size:36px;">🔲</div>
+      </div>
+    </div>`;
+}
+</script>
+</body>
+</html>
