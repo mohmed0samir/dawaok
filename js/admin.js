@@ -22,10 +22,8 @@ async function doLogin(){
       firebase.initializeApp(window.FIREBASE_CONFIG);
     }
     const [h, storedHash] = await Promise.all([sha256(v), getHashFromDB()]);
- const inputHash = String(h).trim().toLowerCase();
-const savedHash = String(storedHash).trim().toLowerCase();
-
-if (inputHash === savedHash) {
+ 
+if (h === storedHash) {
       document.getElementById('loginScreen').style.display='none';
       document.getElementById('app').style.display='flex';
       document.getElementById('loginErr').style.display='none';
