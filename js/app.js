@@ -475,57 +475,24 @@ window.closeRx = () => {
 
 window.handleRxFile = (file) => {
   if (!file || !file.type.startsWith('image/')) return;
+
   const reader = new FileReader();
-  reader.onload = async e => {
+
+  reader.onload = e => {
     rxBase64 = e.target.result;
+
     document.getElementById('rxPreview').src = rxBase64;
     document.getElementById('rxPreviewWrap').style.display = 'block';
     document.getElementById('rxPlaceholder').style.display = 'none';
     document.getElementById('rxDrop').classList.add('has-img');
-    await scanRx(rxBase64);
+
+    // مفيش قراءة ذكية
+    document.getElementById('rxScanBadge').style.display = 'none';
+    document.getElementById('rxMedsWrap').style.display = 'none';
   };
+
   reader.readAsDataURL(file);
 };
-
-window.clearRx = () => {
-  rxBase64 = null; rxMeds = [];
-  document.getElementById('rxPreview').src = '';
-  document.getElementById('rxPreviewWrap').style.display = 'none';
-  document.getElementById('rxPlaceholder').style.display = 'block';
-  document.getElementById('rxDrop').classList.remove('has-img');
-  document.getElementById('rxInput').value = '';
-  document.getElementById('rxScanBadge').style.display = 'none';
-  document.getElementById('rxMedsWrap').style.display = 'none';
-};
-
-async function scanRx(base64) {
-  const badge = document.getElementById('rxScanBadge');
-  badge.className = 'rx-scan-badge scanning';
-  badge.style.display = 'block';
-  badge.textContent = '🔍 بنقرأ الروشتة...';
-  try {
-    const b64 = base64.split(',')[1];
-    const mime = base64.split(';')[0].split(':')[1] || 'image/jpeg';
-    const res = await fetch(SCAN_FUNCTION_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'prescription', imageBase64: b64, mimeType: mime })
-    });
-    if (!res.ok) throw new Error('server ' + res.status);
-    const r = await res.json();
-    rxMeds = Array.isArray(r.medicines) ? r.medicines : [];
-    if (!rxMeds.length) throw new Error('no meds');
-    renderRxMeds();
-    badge.className = 'rx-scan-badge done';
-    badge.textContent = `✅ اتقرت ${rxMeds.length} صنف — راجعهم قبل الإرسال`;
-    document.getElementById('rxMedsWrap').style.display = 'block';
-  } catch(e) {
-    console.error(e);
-    badge.className = 'rx-scan-badge err';
-    badge.textContent = '⚠️ مقدرناش نقرأ الروشتة أوتوماتيك، الصيدلي هيراجعها يدوي بعد الإرسال';
-  }
-}
-
 function renderRxMeds() {
   document.getElementById('rxMedsList').innerHTML = rxMeds.map((m, i) => `
     <div class="rx-med-item">💊 <input value="${(m.name||'').replace(/"/g,'')}" onchange="window.updateRxMed(${i}, this.value)"></div>
