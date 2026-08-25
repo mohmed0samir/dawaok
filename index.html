@@ -13,13 +13,21 @@
 <header>
   <div class="header-wrap">
     <div class="logo">💊 دواؤك<span class="logo-dot">.</span></div>
+
     <div class="search-wrap">
-      <input type="text" id="searchInput" placeholder="ابحث عن دواء أو منتج..." oninput="filterProducts()">
+      <input type="text" id="searchInput"
+             placeholder="ابحث عن دواء أو منتج..."
+             oninput="filterProducts()">
       <button>🔍</button>
     </div>
+
     <div class="header-actions">
-      <button class="rx-fab" onclick="openRx()">📷 <span class="lbl">اطلب بروشتة</span></button>
+      <button class="rx-fab" onclick="openRx()">
+        📷 <span class="lbl">اطلب بروشتة</span>
+      </button>
+
       <button class="icon-btn" id="accountBtn" onclick="openAccount()">👤</button>
+
       <button class="cart-fab" onclick="openCart()">
         🛒 <span class="lbl">السلة</span>
         <span class="badge" id="cartBadge">0</span>
@@ -28,196 +36,855 @@
   </div>
 </header>
 
+
 <!-- HERO -->
 <div class="hero" style="max-width:1200px;margin:28px auto;padding:44px 48px;">
   <div class="hero-glow"></div>
-  <h1>صيدليتك <span>الذكية</span><br>على بُعد نقرة 🎯</h1>
-  <p>أدويتك وصحتك — توصيل سريع، فاتورة فورية، متابعة حية</p>
+
+  <h1>
+    صيدليتك <span>الذكية</span><br>
+    على بُعد نقرة 🎯
+  </h1>
+
+  <p>
+    أدويتك وصحتك — توصيل سريع، فاتورة فورية، متابعة حية
+  </p>
+
   <div class="hero-btns">
-    <button class="btn-primary" onclick="document.getElementById('productsSection').scrollIntoView({behavior:'smooth'})">تسوق الآن</button>
-    <button class="btn-outline" onclick="openCart()">🛒 سلتي</button>
-    <button class="btn-outline" onclick="openRx()">📷 اطلب بروشتة</button>
+    <button class="btn-primary"
+            onclick="document.getElementById('productsSection').scrollIntoView({behavior:'smooth'})">
+      تسوق الآن
+    </button>
+
+    <button class="btn-outline" onclick="openCart()">
+      🛒 سلتي
+    </button>
+
+    <button class="btn-outline" onclick="openRx()">
+      📷 اطلب بروشتة
+    </button>
   </div>
 </div>
+
 
 <!-- CATEGORIES -->
 <div class="section">
   <div class="cats-scroll" id="catsRow">
-    <div class="cat-chip active" onclick="filterCat('')">🏠 الكل</div>
-    <div class="cat-chip" onclick="filterCat('أدوية')">💊 أدوية</div>
-    <div class="cat-chip" onclick="filterCat('فيتامينات')">🌿 فيتامينات</div>
-    <div class="cat-chip" onclick="filterCat('عناية بالبشرة')">🧴 عناية بالبشرة</div>
-    <div class="cat-chip" onclick="filterCat('صحة الطفل')">👶 صحة الطفل</div>
-    <div class="cat-chip" onclick="filterCat('مستلزمات طبية')">🩺 مستلزمات</div>
-    <div class="cat-chip" onclick="filterCat('تكميل عضلات')">💪 تكميل</div>
-    <div class="cat-chip" onclick="filterCat('عروض')">🔖 عروض</div>
+
+    <div class="cat-chip active" onclick="filterCat('')">
+      🏠 الكل
+    </div>
+
+    <div class="cat-chip" onclick="filterCat('أدوية')">
+      💊 أدوية
+    </div>
+
+    <div class="cat-chip" onclick="filterCat('فيتامينات')">
+      🌿 فيتامينات
+    </div>
+
+    <div class="cat-chip" onclick="filterCat('عناية بالبشرة')">
+      🧴 عناية بالبشرة
+    </div>
+
+    <div class="cat-chip" onclick="filterCat('صحة الطفل')">
+      👶 صحة الطفل
+    </div>
+
+    <div class="cat-chip" onclick="filterCat('مستلزمات طبية')">
+      🩺 مستلزمات
+    </div>
+
+    <div class="cat-chip" onclick="filterCat('تكميل عضلات')">
+      💪 تكميل
+    </div>
+
+    <div class="cat-chip" onclick="filterCat('عروض')">
+      🔖 عروض
+    </div>
+
   </div>
 </div>
+
 
 <!-- PRODUCTS -->
 <div class="section" id="productsSection">
+
   <div class="section-hd">
-    <div class="section-title">المنتجات المتاحة</div>
-    <span id="productsCount" style="color:var(--muted);font-size:13px;"></span>
-  </div>
-  <div class="products-grid" id="productsGrid">
-    <div class="loading-spinner">
-      <div class="spin">⏳</div><br>جاري تحميل المنتجات...
+    <div class="section-title">
+      المنتجات المتاحة
     </div>
+
+    <span id="productsCount"
+          style="color:var(--muted);font-size:13px;">
+    </span>
+  </div>
+
+  <div class="products-grid" id="productsGrid">
+
+    <div class="loading-spinner">
+      <div class="spin">⏳</div>
+      <br>
+      جاري تحميل المنتجات...
+    </div>
+
   </div>
 </div>
 
-<!-- ══ CART DRAWER ══ -->
-<div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
+
+<!-- CART DRAWER -->
+<div class="overlay"
+     id="overlay"
+     onclick="closeAllPanels()">
+</div>
+
 <div class="drawer" id="drawer">
+
   <div class="drawer-head">
+
     <h2>🛒 سلة التسوق</h2>
-    <button class="close-btn" onclick="closeCart()">✕</button>
+
+    <button class="close-btn"
+            onclick="closeCart()">
+      ✕
+    </button>
+
   </div>
-  <div class="cart-items" id="cartItems"></div>
-  <div class="cart-footer" id="cartFooter" style="display:none;">
+
+  <div class="cart-items"
+       id="cartItems">
+  </div>
+
+  <div class="cart-footer"
+       id="cartFooter"
+       style="display:none;">
+
     <div class="cart-total">
-      <span class="cart-total-label">الإجمالي</span>
-      <span class="cart-total-val" id="cartTotal">0 جنيه</span>
+
+      <span class="cart-total-label">
+        الإجمالي
+      </span>
+
+      <span class="cart-total-val"
+            id="cartTotal">
+        0 جنيه
+      </span>
+
     </div>
 
-    <!-- shown only when logged in AND has saved addresses -->
-    <div id="savedAddrPicker" style="display:none;margin-bottom:10px;">
-      <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">اختار عنوان التوصيل</label>
-      <div class="saved-addr-picker" id="savedAddrList"></div>
+
+    <!-- SAVED ADDRESSES -->
+    <div id="savedAddrPicker"
+         style="display:none;margin-bottom:10px;">
+
+      <label style="
+        display:block;
+        font-size:12px;
+        font-weight:700;
+        color:var(--muted);
+        margin-bottom:8px;
+      ">
+        اختار عنوان التوصيل
+      </label>
+
+      <div class="saved-addr-picker"
+           id="savedAddrList">
+      </div>
+
     </div>
 
+
+    <!-- ORDER FORM -->
     <div class="order-form">
+
       <div class="form-group">
         <label>الاسم الكامل</label>
-        <input type="text" id="custName" placeholder="اسمك">
+
+        <input type="text"
+               id="custName"
+               placeholder="اسمك">
       </div>
+
+
       <div class="form-group">
         <label>رقم الهاتف</label>
-        <input type="tel" id="custPhone" placeholder="01xxxxxxxxx">
+
+        <input type="tel"
+               id="custPhone"
+               placeholder="01xxxxxxxxx">
       </div>
+
+
       <div class="form-group">
         <label>العنوان</label>
-        <textarea id="custAddress" rows="2" placeholder="عنوان التوصيل"></textarea>
+
+        <textarea id="custAddress"
+                  rows="2"
+                  placeholder="عنوان التوصيل"></textarea>
       </div>
-      <button class="btn-checkout" onclick="placeOrder()">✅ تأكيد الطلب</button>
+
+
+      <button class="btn-checkout"
+              onclick="placeOrder()">
+        ✅ تأكيد الطلب
+      </button>
+
     </div>
+
   </div>
 </div>
 
-<!-- ══ ACCOUNT DRAWER ══ -->
+
+<!-- ACCOUNT DRAWER -->
 <div class="drawer" id="accountDrawer">
+
   <div class="drawer-head">
-    <h2 id="accountTitle">👤 حسابي</h2>
-    <button class="close-btn" onclick="closeAccount()">✕</button>
+
+    <h2 id="accountTitle">
+      👤 حسابي
+    </h2>
+
+    <button class="close-btn"
+            onclick="closeAccount()">
+      ✕
+    </button>
+
   </div>
 
-  <!-- guest state: login / register -->
-  <div id="authView" style="padding:20px 24px;">
+
+  <!-- GUEST / AUTH -->
+  <div id="authView"
+       style="padding:20px 24px;">
+
     <div class="auth-tabs">
-      <div class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">دخول</div>
-      <div class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">حساب جديد</div>
-    </div>
-    <div class="auth-error" id="authError"></div>
 
-    <div class="auth-panel active" id="panelLogin">
-      <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
-      <div class="form-group"><label>كلمة المرور</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
-      <button class="btn-checkout" onclick="doCustomerLogin()">🔐 دخول</button>
-      <div class="auth-switch">مفيش حساب؟ <a onclick="switchAuthTab('register')">اعمل واحد</a></div>
+      <div class="auth-tab active"
+           id="tabLogin"
+           onclick="switchAuthTab('login')">
+        دخول
+      </div>
+
+      <div class="auth-tab"
+           id="tabRegister"
+           onclick="switchAuthTab('register')">
+        حساب جديد
+      </div>
+
     </div>
 
-    <div class="auth-panel" id="panelRegister">
-      <div class="form-group"><label>الاسم بالكامل</label><input type="text" id="regName" placeholder="اسمك"></div>
-      <div class="form-group"><label>رقم الهاتف</label><input type="tel" id="regPhone" placeholder="01xxxxxxxxx"></div>
-      <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="regEmail" placeholder="you@example.com"></div>
-      <div class="form-group"><label>كلمة المرور</label><input type="password" id="regPassword" placeholder="6 أحرف على الأقل"></div>
-      <button class="btn-checkout" onclick="doCustomerRegister()">✨ إنشاء حساب</button>
-      <div class="auth-switch">عندك حساب؟ <a onclick="switchAuthTab('login')">دخول</a></div>
+
+    <div class="auth-error"
+         id="authError">
     </div>
-    <div class="guest-note">تقدر كمان تكمل طلبك كضيف من غير تسجيل دخول ✌️</div>
+
+
+    <!-- LOGIN -->
+    <div class="auth-panel active"
+         id="panelLogin">
+
+      <div class="form-group">
+
+        <label>
+          البريد الإلكتروني
+        </label>
+
+        <input type="email"
+               id="loginEmail"
+               placeholder="you@example.com">
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>
+          كلمة المرور
+        </label>
+
+        <input type="password"
+               id="loginPassword"
+               placeholder="••••••••">
+
+      </div>
+
+
+      <button class="btn-checkout"
+              onclick="doCustomerLogin()">
+        🔐 دخول
+      </button>
+
+
+      <div class="auth-switch">
+        مفيش حساب؟
+        <a onclick="switchAuthTab('register')">
+          اعمل واحد
+        </a>
+      </div>
+
+    </div>
+
+
+    <!-- REGISTER -->
+    <div class="auth-panel"
+         id="panelRegister">
+
+      <div class="form-group">
+
+        <label>
+          الاسم بالكامل
+        </label>
+
+        <input type="text"
+               id="regName"
+               placeholder="اسمك">
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>
+          رقم الهاتف
+        </label>
+
+        <input type="tel"
+               id="regPhone"
+               placeholder="01xxxxxxxxx">
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>
+          البريد الإلكتروني
+        </label>
+
+        <input type="email"
+               id="regEmail"
+               placeholder="you@example.com">
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>
+          كلمة المرور
+        </label>
+
+        <input type="password"
+               id="regPassword"
+               placeholder="6 أحرف على الأقل">
+
+      </div>
+
+
+      <button class="btn-checkout"
+              onclick="doCustomerRegister()">
+        ✨ إنشاء حساب
+      </button>
+
+
+      <div class="auth-switch">
+
+        عندك حساب؟
+
+        <a onclick="switchAuthTab('login')">
+          دخول
+        </a>
+
+      </div>
+
+    </div>
+
+
+    <div class="guest-note">
+      تقدر كمان تكمل طلبك كضيف من غير تسجيل دخول ✌️
+    </div>
+
+
+    <!-- GUEST ORDERS -->
+    <div class="account-section-title"
+         style="margin-top:18px;">
+
+      <span>
+        📦 طلباتي على هذا الجهاز
+      </span>
+
+    </div>
+
+
+    <div id="guestOrdersList">
+
+      <div style="
+        color:var(--muted);
+        font-size:12px;
+        padding:12px 0;
+      ">
+        لو عملت طلب من الجهاز ده هيظهر هنا
+      </div>
+
+    </div>
+
   </div>
 
-  <!-- logged-in state: profile + addresses -->
-  <div id="profileView" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+
+  <!-- LOGGED IN PROFILE -->
+  <div id="profileView"
+       style="
+         display:none;
+         flex:1;
+         flex-direction:column;
+         overflow:hidden;
+       ">
+
     <div class="account-user">
-      <div class="account-avatar" id="avatarInitial">؟</div>
+
+      <div class="account-avatar"
+           id="avatarInitial">
+        ؟
+      </div>
+
       <div>
-        <div class="account-name" id="profName">—</div>
-        <div class="account-email" id="profEmail">—</div>
-      </div>
-    </div>
-    <div class="account-body">
-      <div class="account-section-title">
-        <span>📍 عناويني</span>
-      </div>
-      <div id="addrListWrap"><div style="color:var(--muted);font-size:12px;">⏳ جاري التحميل...</div></div>
-      <button class="add-addr-btn" onclick="openAddressForm()">+ إضافة عنوان جديد</button>
 
-      <!-- add/edit address form -->
-      <div id="addressFormWrap" style="display:none;margin-top:16px;">
-        <div class="account-section-title"><span id="addrFormTitle">عنوان جديد</span></div>
-        <div class="order-form">
-          <div class="form-group"><label>اسم العنوان (المنزل، الشغل...)</label><input type="text" id="afLabel" placeholder="المنزل"></div>
-          <div class="form-row-2">
-            <div class="form-group"><label>المحافظة</label><input type="text" id="afGov" placeholder="الغربية"></div>
-            <div class="form-group"><label>المدينة</label><input type="text" id="afCity" placeholder="طنطا"></div>
-          </div>
-          <div class="form-group"><label>المنطقة/الحي</label><input type="text" id="afArea" placeholder="اسم المنطقة"></div>
-          <div class="form-group"><label>الشارع</label><input type="text" id="afStreet" placeholder="اسم الشارع"></div>
-          <div class="form-row-2">
-            <div class="form-group"><label>المبنى</label><input type="text" id="afBuilding" placeholder="رقم العمارة"></div>
-            <div class="form-group"><label>الدور</label><input type="text" id="afFloor" placeholder="رقم الدور"></div>
-          </div>
-          <div class="form-group"><label>رقم الشقة</label><input type="text" id="afApt" placeholder="رقم الشقة"></div>
-          <div class="form-group"><label>علامة مميزة (اختياري)</label><input type="text" id="afLandmark" placeholder="بجوار..."></div>
-          <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);"><input type="checkbox" id="afDefault" style="width:auto;"> اجعله العنوان الأساسي</label>
-          <button class="btn-checkout" onclick="saveAddressForm()">💾 حفظ العنوان</button>
-          <button class="add-addr-btn" onclick="closeAddressForm()">إلغاء</button>
+        <div class="account-name"
+             id="profName">
+          —
         </div>
+
+        <div class="account-email"
+             id="profEmail">
+          —
+        </div>
+
       </div>
+
     </div>
+
+
+    <div class="account-body">
+
+
+      <!-- ADDRESSES -->
+      <div class="account-section-title">
+
+        <span>
+          📍 عناويني
+        </span>
+
+      </div>
+
+
+      <div id="addrListWrap">
+
+        <div style="
+          color:var(--muted);
+          font-size:12px;
+        ">
+          ⏳ جاري التحميل...
+        </div>
+
+      </div>
+
+
+      <button class="add-addr-btn"
+              onclick="openAddressForm()">
+        + إضافة عنوان جديد
+      </button>
+
+
+      <!-- MY ORDERS -->
+      <div class="account-section-title"
+           style="margin-top:18px;">
+
+        <span>
+          📦 طلباتي ومتابعتها
+        </span>
+
+      </div>
+
+
+      <div id="myOrdersList">
+
+        <div style="
+          color:var(--muted);
+          font-size:12px;
+          padding:12px 0;
+        ">
+          ⏳ جاري تحميل الطلبات...
+        </div>
+
+      </div>
+
+
+      <!-- ADDRESS FORM -->
+      <div id="addressFormWrap"
+           style="
+             display:none;
+             margin-top:16px;
+           ">
+
+        <div class="account-section-title">
+
+          <span id="addrFormTitle">
+            عنوان جديد
+          </span>
+
+        </div>
+
+
+        <div class="order-form">
+
+          <div class="form-group">
+
+            <label>
+              اسم العنوان (المنزل، الشغل...)
+            </label>
+
+            <input type="text"
+                   id="afLabel"
+                   placeholder="المنزل">
+
+          </div>
+
+
+          <div class="form-row-2">
+
+            <div class="form-group">
+
+              <label>
+                المحافظة
+              </label>
+
+              <input type="text"
+                     id="afGov"
+                     placeholder="الغربية">
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>
+                المدينة
+              </label>
+
+              <input type="text"
+                     id="afCity"
+                     placeholder="طنطا">
+
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              المنطقة/الحي
+            </label>
+
+            <input type="text"
+                   id="afArea"
+                   placeholder="اسم المنطقة">
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              الشارع
+            </label>
+
+            <input type="text"
+                   id="afStreet"
+                   placeholder="اسم الشارع">
+
+          </div>
+
+
+          <div class="form-row-2">
+
+            <div class="form-group">
+
+              <label>
+                المبنى
+              </label>
+
+              <input type="text"
+                     id="afBuilding"
+                     placeholder="رقم العمارة">
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>
+                الدور
+              </label>
+
+              <input type="text"
+                     id="afFloor"
+                     placeholder="رقم الدور">
+
+            </div>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              رقم الشقة
+            </label>
+
+            <input type="text"
+                   id="afApt"
+                   placeholder="رقم الشقة">
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              علامة مميزة (اختياري)
+            </label>
+
+            <input type="text"
+                   id="afLandmark"
+                   placeholder="بجوار...">
+
+          </div>
+
+
+          <label style="
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-size:12px;
+            color:var(--muted);
+          ">
+
+            <input type="checkbox"
+                   id="afDefault"
+                   style="width:auto;">
+
+            اجعله العنوان الأساسي
+
+          </label>
+
+
+          <button class="btn-checkout"
+                  onclick="saveAddressForm()">
+            💾 حفظ العنوان
+          </button>
+
+
+          <button class="add-addr-btn"
+                  onclick="closeAddressForm()">
+            إلغاء
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- LOGOUT -->
     <div class="cart-footer">
-      <button class="add-addr-btn" style="color:var(--danger);border-color:rgba(255,77,109,.3);" onclick="doCustomerLogout()">🚪 تسجيل الخروج</button>
+
+      <button class="add-addr-btn"
+              style="
+                color:var(--danger);
+                border-color:rgba(255,77,109,.3);
+              "
+              onclick="doCustomerLogout()">
+
+        🚪 تسجيل الخروج
+
+      </button>
+
     </div>
+
   </div>
+
 </div>
 
-<!-- ══ PRESCRIPTION (روشتة) MODAL ══ -->
-<div class="modal-bg" id="rxModal">
+
+<!-- PRESCRIPTION MODAL -->
+<div class="modal-bg"
+     id="rxModal">
+
   <div class="modal-card">
-    <h2>📷 اطلب بروشتة العلاج</h2>
-    <div class="sub">صوّر أو ارفع الروشتة وسيتم إرسالها للصيدلي مباشرة للمراجعة</div>
 
-    <div class="rx-drop" id="rxDrop" onclick="document.getElementById('rxInput').click()"
-      ondragover="event.preventDefault();this.style.borderColor='#7c5cff'"
-      ondragleave="this.style.borderColor=''"
-      ondrop="event.preventDefault();this.style.borderColor='';handleRxFile(event.dataTransfer.files[0])">
+    <h2>
+      📷 اطلب بروشتة العلاج
+    </h2>
+
+
+    <div class="sub">
+      صوّر أو ارفع الروشتة وسيتم إرسالها للصيدلي مباشرة للمراجعة
+    </div>
+
+
+    <!-- RX UPLOAD -->
+    <div class="rx-drop"
+         id="rxDrop"
+         onclick="document.getElementById('rxInput').click()"
+
+         ondragover="
+           event.preventDefault();
+           this.style.borderColor='#7c5cff'
+         "
+
+         ondragleave="
+           this.style.borderColor=''
+         "
+
+         ondrop="
+           event.preventDefault();
+           this.style.borderColor='';
+           handleRxFile(event.dataTransfer.files[0])
+         ">
+
       <div id="rxPlaceholder">
-        <div style="font-size:36px;margin-bottom:8px;">🧾</div>
-        <div style="font-size:13px;color:var(--muted);">اسحب صورة الروشتة أو اضغط للرفع</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px;">PNG / JPG</div>
-      </div>
-      <div id="rxPreviewWrap" style="display:none;position:relative;">
-        <button class="rx-clear" onclick="event.stopPropagation();clearRx()">✕</button>
-        <img id="rxPreview" class="rx-preview" src="">
-      </div>
-    </div>
-    <input type="file" id="rxInput" accept="image/*" style="display:none" onchange="handleRxFile(this.files[0])">
 
-    <div class="order-form" style="margin-top:16px;">
-      <div class="form-group"><label>الاسم الكامل</label><input type="text" id="rxName" placeholder="اسمك"></div>
-      <div class="form-group"><label>رقم الهاتف</label><input type="tel" id="rxPhone" placeholder="01xxxxxxxxx"></div>
-      <div class="form-group"><label>العنوان</label><textarea id="rxAddress" rows="2" placeholder="عنوان التوصيل"></textarea></div>
-      <button class="btn-checkout" onclick="submitRxOrder()">📤 إرسال الروشتة للصيدلي</button>
-      <button class="add-addr-btn" onclick="closeRx()">إلغاء</button>
+        <div style="
+          font-size:36px;
+          margin-bottom:8px;
+        ">
+          🧾
+        </div>
+
+        <div style="
+          font-size:13px;
+          color:var(--muted);
+        ">
+          اسحب صورة الروشتة أو اضغط للرفع
+        </div>
+
+        <div style="
+          font-size:11px;
+          color:var(--muted);
+          margin-top:4px;
+        ">
+          PNG / JPG
+        </div>
+
+      </div>
+
+
+      <div id="rxPreviewWrap"
+           style="
+             display:none;
+             position:relative;
+           ">
+
+        <button class="rx-clear"
+                onclick="
+                  event.stopPropagation();
+                  clearRx();
+                ">
+          ✕
+        </button>
+
+        <img id="rxPreview"
+             class="rx-preview"
+             src="">
+
+      </div>
+
     </div>
+
+
+    <input type="file"
+           id="rxInput"
+           accept="image/*"
+           style="display:none"
+           onchange="handleRxFile(this.files[0])">
+
+
+    <!-- RX ORDER DATA -->
+    <div class="order-form"
+         style="margin-top:16px;">
+
+      <div class="form-group">
+
+        <label>
+          الاسم الكامل
+        </label>
+
+        <input type="text"
+               id="rxName"
+               placeholder="اسمك">
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>
+          رقم الهاتف
+        </label>
+
+        <input type="tel"
+               id="rxPhone"
+               placeholder="01xxxxxxxxx">
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>
+          العنوان
+        </label>
+
+        <textarea id="rxAddress"
+                  rows="2"
+                  placeholder="عنوان التوصيل">
+        </textarea>
+
+      </div>
+
+
+      <button class="btn-checkout"
+              onclick="submitRxOrder()">
+
+        📤 إرسال الروشتة للصيدلي
+
+      </button>
+
+
+      <button class="add-addr-btn"
+              onclick="closeRx()">
+
+        إلغاء
+
+      </button>
+
+    </div>
+
   </div>
+
 </div>
+
 
 <!-- TOAST -->
-<div class="toast" id="toast"></div>
+<div class="toast"
+     id="toast">
+</div>
 
-<script type="module" src="js/app.js"></script>
+
+<script type="module"
+        src="js/app.js">
+</script>
+
 </body>
 </html>
