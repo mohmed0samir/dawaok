@@ -1,0 +1,11 @@
+{
+  "name": "dawaok-functions",
+  "description": "Cloud Functions لموقع دواؤك — إرسال طلبات الروشتات إلى Telegram بشكل آمن",
+  "engines": { "node": "20" },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-functions": "^5.0.0",
+    "firebase-admin": "^12.0.0"
+  },
+  "private": true
+}
