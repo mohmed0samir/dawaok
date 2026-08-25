@@ -1,0 +1,11 @@
+{
+  "name": "dawaok-functions",
+  "description": "Cloud Functions لموقع دواؤك — بروكسي آمن لقراءة صور المنتجات والروشتات بالذكاء الاصطناعي",
+  "engines": { "node": "20" },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-functions": "^5.0.0",
+    "firebase-admin": "^12.0.0"
+  },
+  "private": true
+}
