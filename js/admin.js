@@ -204,7 +204,7 @@ function openPendingAdminOrder(){
 function updateStats(){
   const o=window._orders||[];
   document.getElementById('s1').textContent=o.length;
-  document.getElementById('s2').textContent=o.filter(x=>x.status!=='cancelled').reduce((s,x)=>s+(x.total||0),0)+' ج';
+  document.getElementById('s2').textContent=o.filter(x=>x.status!=='cancelled').reduce((s,x)=>s+(x.grandTotal ?? x.total ?? 0),0)+' ج';
   document.getElementById('s3').textContent=o.filter(x=>x.status==='pending').length;
   document.getElementById('s4').textContent=o.filter(x=>x.status==='delivered').length;
 }
@@ -229,7 +229,7 @@ function renderDashOrders(){
     <td>${typeChip(x)}</td>
     <td><code style="font-size:10px;color:var(--teal)">${x.orderId||x.docId.slice(0,10)}</code></td>
     <td>${x.customer?.name||'—'}</td>
-    <td style="color:var(--gold);font-weight:800">${x.type==='prescription'?'—':(x.total||0)+' ج'}</td>
+    <td style="color:var(--gold);font-weight:800">${(x.grandTotal ?? x.total ?? 0)+' ج'}</td>
     <td>${chip(x.status)}</td>
     <td style="color:var(--muted);font-size:11px">${x.createdAt?.toDate?x.createdAt.toDate().toLocaleString('ar-EG'):'—'}</td>
   </tr>`).join('');
@@ -257,13 +257,13 @@ function renderOrders(){
       <td><b>${x.customer?.name||'—'}</b><br><small style="color:var(--muted)">${x.customer?.address||''}</small>${x.deliveredBy ? `<br><small style="color:var(--teal)">🚚 سلّمها: ${x.deliveredBy.name||'—'} — ${x.deliveredBy.phone||'—'}</small>` : ''}</td>
       <td style="color:var(--teal)">${x.customer?.phone||'—'}</td>
       <td style="font-size:11px;color:var(--muted);max-width:170px;">${itemsCell}</td>
-      <td style="color:var(--gold);font-weight:800">${x.type==='prescription'?(x.total!=null?(x.total)+' ج':'يحدد لاحقاً'):(x.total||0)+' ج'}</td>
+      <td style="color:var(--gold);font-weight:800">${x.type==='prescription'?(x.grandTotal!=null?(x.grandTotal)+' ج':x.total!=null?(x.total)+' ج':'يحدد لاحقاً'):(x.total||0)+' ج'}</td>
       <td>${chip(x.status)}</td>
       <td>
         ${x.type==='prescription' && x.status!=='delivered' && x.status!=='cancelled'?`<button class="abtn ok" onclick="openRxPricing('${x.docId}')">💰 ${x.total!=null?'تعديل السعر':'تسعير'}</button>`:''}
         ${x.type!=='prescription' && x.status==='pending'?`<button class="abtn ok" onclick="updOrder('${x.docId}','confirmed')">✅ تأكيد</button>`:''}
         ${['confirmed','priced'].includes(x.status)?`<button class="abtn dlv" onclick="updOrder('${x.docId}','ready')">🚚 تجهيز للتوصيل</button>`:''}
-        ${['ready','assigned'].includes(x.status)?`<button class="abtn ok" onclick="assignCourier('${x.docId}')">👤 تعيين مندوب</button>`:''}
+        ${['ready','assigned'].includes(x.status)?`<button class="abtn ok" onclick="broadcastOrder('${x.docId}')">📣 إرسال للمندوبين</button>`:''}
         ${x.status!=='cancelled'&&x.status!=='delivered'?`<button class="abtn cxl" onclick="updOrder('${x.docId}','cancelled')">❌ إلغاء</button>`:''}
         <button class="abtn inv" onclick="viewInv('${x.docId}')">🧾 فاتورة</button>
       </td>
@@ -272,8 +272,20 @@ function renderOrders(){
 }
 
 async function updOrder(id,status){
-  try{ await window._db.collection('orders').doc(id).update({status,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}); toast('✅ تم التحديث'); }
+  try{
+    const updates={status,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+    if(['confirmed','ready'].includes(status)){
+      updates.courierOffers=(window._couriers||[]).filter(x=>x.active!==false).map(x=>x.uid);
+      updates.courier=null;
+    }
+    await window._db.collection('orders').doc(id).update(updates);
+    toast('✅ تم التحديث وإرسال الطلب للمندوبين');
+  }
   catch(e){ toast('❌ '+e.message); }
+}
+
+async function broadcastOrder(id){
+  await updOrder(id,'ready');
 }
 
 async function assignCourier(id){
@@ -392,7 +404,11 @@ async function saveRxPricing(){
   const total=items.reduce((sum,row)=>sum+row.price*row.qty,0);
   const delivery=Number(document.getElementById('rxDeliveryFee').value||0);
   if(!Number.isFinite(delivery)||delivery<0){toast('⚠️ اكتب رسوم توصيل صحيحة');return;}
-  const savedItems=items.map(row=>({name:row.name,price:row.price,qty:row.qty,emoji:'💊',imageUrl:null}));
+  const normalizeName=name=>String(name).trim().toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/\s+/g,' ');
+  const savedItems=items.map(row=>{
+    const product=(window._products||[]).find(p=>normalizeName(p.name)===normalizeName(row.name));
+    return {name:row.name,price:row.price,qty:row.qty,emoji:'💊',imageUrl:null,productId:product?.docId||null};
+  });
   try{
     await window._db.collection('orders').doc(pricingOrderId).update({
       items:savedItems,
@@ -401,6 +417,9 @@ async function saveRxPricing(){
       grandTotal:total+delivery,
       pricingStatus:'confirmed',
       status:'priced',
+      courierOffers:(window._couriers||[]).filter(x=>x.active!==false).map(x=>x.uid),
+      courier:null,
+      inventoryItems:savedItems.filter(item=>item.productId).map(item=>({productId:item.productId,name:item.name,qty:item.qty})),
       updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     });
     closeModal('rxPrice');
@@ -427,7 +446,7 @@ function renderProducts(){
         <div class="prod-meta">${x.brand||''} · ${x.category||''}</div>
       </div>
       <div style="font-size:15px;font-weight:900;color:var(--gold);margin-left:8px;flex-shrink:0;">${x.price} ج</div>
-      <span class="stk ${sc}">${sl}</span>
+      <span class="stk ${sc}">${sl} · مسحوب: ${Number(x.withdrawn||0)}</span>
       <button class="del-btn" onclick="delProduct('${x.docId}','${x.name.replace(/'/g,'')}')">🗑</button>
     </div>`;
   }).join('');
@@ -457,6 +476,7 @@ async function addProduct(){
       name, brand, category:cat, price, stock, discount, isNew,
       emoji: selEmoji,
       imageUrl: imgBase64 || null,
+      withdrawn: 0,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     ['pName','pBrand','pPrice','pStock','pDiscount'].forEach(id=>document.getElementById(id).value='');

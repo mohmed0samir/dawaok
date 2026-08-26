@@ -50,6 +50,9 @@ function orderInvoiceUrl(id) {
 }
 
 function statusLabel(s, order) {
+  if (s === 'cancelled' && order?.type === 'prescription') {
+    return '❌ تم إلغاء الروشتة — الدواء غير متاح في الوقت الحالي';
+  }
   if (['picked_up', 'out_for_delivery', 'delivered'].includes(s)) {
     const courier = order?.deliveredBy || order?.courier;
     if (courier) {
@@ -144,7 +147,7 @@ function renderProducts() {
           ? `<img src="${p.imageUrl}" style="width:110px;height:110px;object-fit:contain;border-radius:8px;" alt="${p.name}">`
           : (p.emoji || '💊')}
         ${badgeHtml}
-        ${!inStock ? '<div class="out-badge">نفد المخزون</div>' : ''}
+        ${!inStock ? '<div class="out-badge">غير متاح في الوقت الحالي</div>' : ''}
       </div>
       <div class="product-body">
         <div class="product-brand">${p.brand || ''}</div>
@@ -154,7 +157,7 @@ function renderProducts() {
             <div class="product-price">${finalPrice} جنيه</div>
             ${oldPrice}
           </div>
-          <button class="add-btn" onclick="window.addToCart('${p.id}')">+</button>
+          <button class="add-btn" ${!inStock ? 'disabled' : ''} onclick="window.addToCart('${p.id}')">${inStock ? '+' : '—'}</button>
         </div>
       </div>
     </div>`;
@@ -175,6 +178,7 @@ window.filterCat = (cat) => {
 window.addToCart = (id) => {
   const p = allProducts.find(x => x.id === id);
   if (!p) return;
+  if (Number(p.stock || 0) < 1) { toast('⚠️ المنتج غير متاح في الوقت الحالي'); return; }
   const idx = cart.findIndex(x => x.id === id);
   if (idx > -1) cart[idx].qty++;
   else cart.push({ id, name: p.name, emoji: p.emoji || '💊', imageUrl: p.imageUrl||null, price: p.discount ? Math.round(p.price*(1-p.discount/100)) : p.price, qty: 1 });
@@ -301,6 +305,11 @@ window.placeOrder = async () => {
   const address = document.getElementById('custAddress').value.trim();
   if (!name || !phone || !address) { toast('⚠️ اكتب اسمك وهاتفك وعنوانك'); return; }
   if (!cart.length) { toast('⚠️ السلة فارغة'); return; }
+  const unavailable = cart.find(item => {
+    const product = allProducts.find(x => x.id === item.id);
+    return !product || Number(product.stock || 0) < Number(item.qty || 0);
+  });
+  if (unavailable) { toast(`⚠️ الكمية المطلوبة من ${unavailable.name} غير متاحة حاليًا`); return; }
 
   const total = cart.reduce((s,x) => s + x.price*x.qty, 0);
   const orderId = 'ORD-' + Date.now();
@@ -323,10 +332,6 @@ window.placeOrder = async () => {
     rememberOrderId(ref.id);
     closeCart();
     toast('🎉 تم إرسال طلبك بنجاح!');
-
-    setTimeout(() => {
-      window.location.href = orderInvoiceUrl(ref.id);
-    }, 1200);
 
   } catch(e) {
     console.error(e);
@@ -683,7 +688,6 @@ window.submitRxOrder = async () => {
     closeRx();
     clearRx();
     toast('🎉 تم استلام الروشتة! تقدر تفتح طلبك من «طلباتي» وتتابع السعر والحالة.');
-    setTimeout(() => { window.location.href = orderInvoiceUrl(orderRef.id); }, 900);
   } catch (e) {
     console.error(e);
     toast('❌ حصل خطأ أثناء حفظ الروشتة، حاول تاني');

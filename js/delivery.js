@@ -1,7 +1,7 @@
 import { firebaseConfig } from './firebase-config.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc, getDoc, getDocs, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc, getDoc, getDocs, limit, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app=initializeApp(firebaseConfig,'deliveryPortal'), auth=getAuth(app), db=getFirestore(app);
 let unsubscribe=null, courier=null;
@@ -32,21 +32,33 @@ onAuthStateChanged(auth,async user=>{
 function load(){
   document.getElementById('courierLogin').hidden=true; document.getElementById('deliveryApp').hidden=false;
   document.getElementById('courierTitle').textContent='أهلًا، '+courier.name;
-  const q=query(collection(db,'orders'),where('courier.uid','==',courier.uid));
-  unsubscribe=onSnapshot(q,s=>render(s.docs.map(d=>({id:d.id,...d.data()}))),()=>toast('تعذر تحميل الطلبات'));
+  unsubscribe=onSnapshot(collection(db,'orders'),s=>render(s.docs.map(d=>({id:d.id,...d.data()}))),()=>toast('تعذر تحميل الطلبات'));
 }
 function render(data){
-  const open=data.filter(x=>x.status!=='delivered'&&x.status!=='cancelled');
+  const open=data.filter(x=>x.status!=='delivered'&&x.status!=='cancelled' && (x.courier?.uid===courier.uid || (x.courierOffers||[]).includes(courier.uid)));
   document.getElementById('ordersCount').textContent=`${open.length} طلب نشط`;
   const el=document.getElementById('orders');
   if(!open.length){el.innerHTML='<div class="empty">لا توجد طلبات مسندة إليك حاليًا.</div>';return}
   el.innerHTML=open.map(x=>{
     const loc=x.customer?.location;
     const map=loc?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.lat+','+loc.lng)}`:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.customer?.address||'')}`;
+    const isOffer=!x.courier;
     const next=x.status==='assigned'?['picked_up','📦 استلام الطلب']:x.status==='picked_up'?['out_for_delivery','🛵 بدء التوصيل']:x.status==='out_for_delivery'?['delivered','✅ تم التسليم']:null;
-    return `<article class="order"><div class="order-top"><div><h3>${x.customer?.name||'عميل'} <small>#${x.orderId||x.id.slice(0,8)}</small></h3><p>📱 ${x.customer?.phone||'—'}<br>📍 ${x.customer?.address||'—'}</p></div><span class="pill">${labels[x.status]||x.status}</span></div><p>🧾 ${(x.items||[]).map(i=>`${i.name} ×${i.qty}`).join('، ')||'روشتة قيد المراجعة'}</p><div class="money">المطلوب تحصيله: ${x.grandTotal??x.total??'يحدد لاحقًا'} جنيه</div><div class="actions"><a class="map" target="_blank" rel="noopener" href="${map}">🗺️ فتح الموقع في Google Maps</a>${next?`<button onclick="moveOrder('${x.id}','${next[0]}')">${next[1]}</button>`:''}</div></article>`;
+    return `<article class="order"><div class="order-top"><div><h3>${x.customer?.name||'عميل'} <small>#${x.orderId||x.id.slice(0,8)}</small></h3><p>📱 ${x.customer?.phone||'—'}<br>📍 ${x.customer?.address||'—'}</p></div><span class="pill">${isOffer?'طلب متاح':labels[x.status]||x.status}</span></div><p>🧾 ${(x.items||[]).map(i=>`${i.name} ×${i.qty}`).join('، ')||'روشتة قيد المراجعة'}</p><div class="money">المطلوب تحصيله: ${x.grandTotal??x.total??'يحدد لاحقًا'} جنيه</div><div class="actions"><a class="map" target="_blank" rel="noopener" href="${map}">🗺️ فتح الموقع في Google Maps</a>${isOffer?`<button onclick="acceptOrder('${x.id}')">✅ قبول الطلب</button>`:next?`<button onclick="moveOrder('${x.id}','${next[0]}')">${next[1]}</button>`:''}</div></article>`;
   }).join('');
 }
+window.acceptOrder=async(id)=>{
+  try{
+    await runTransaction(db,async transaction=>{
+      const ref=doc(db,'orders',id);
+      const snap=await transaction.get(ref);
+      const order=snap.data();
+      if(!snap.exists() || order.courier || !(order.courierOffers||[]).includes(courier.uid)) throw new Error('already_taken');
+      transaction.update(ref,{courier:{uid:courier.uid,name:courier.name||'',phone:courier.phone||''},courierOffers:[],status:'assigned',updatedAt:serverTimestamp()});
+    });
+    toast('✅ تم قبول الطلب وأصبح معك');
+  }catch(e){toast(e.message==='already_taken'?'الطلب اتاخد من مندوب تاني':'تعذر قبول الطلب')}
+};
 window.moveOrder=async(id,status)=>{
   try{
     const updates={status,updatedAt:serverTimestamp(),paymentCollected:status==='delivered'?true:false};
@@ -54,7 +66,32 @@ window.moveOrder=async(id,status)=>{
       updates.deliveredBy={uid:courier.uid,name:courier.name||'',phone:courier.phone||''};
       updates.deliveredAt=serverTimestamp();
     }
-    await updateDoc(doc(db,'orders',id),updates);
+    await runTransaction(db,async transaction=>{
+      const orderRef=doc(db,'orders',id);
+      const orderSnap=await transaction.get(orderRef);
+      if(!orderSnap.exists()) throw new Error('missing_order');
+      const order=orderSnap.data();
+      const items=order.inventoryDeducted ? [] : (order.items||[]);
+      if(status==='delivered' && order.type==='prescription' && items.some(item=>!item.productId)) throw new Error('medicine_not_registered');
+      const productIds=[...new Set(items.map(item=>item.productId||item.id).filter(Boolean))];
+      const productRefs=productIds.map(productId=>doc(db,'products',productId));
+      const productSnaps=[];
+      for(const productRef of productRefs) productSnaps.push(await transaction.get(productRef));
+      if(status==='delivered' && !order.inventoryDeducted){
+        const quantities={};
+        items.forEach(item=>{const productId=item.productId||item.id;if(productId) quantities[productId]=(quantities[productId]||0)+Number(item.qty||0)});
+        productRefs.forEach((productRef,index)=>{
+          const productSnap=productSnaps[index];
+          if(!productSnap.exists()) return;
+          const qty=quantities[productRef.id]||0;
+          const stock=Number(productSnap.data().stock||0);
+          if(stock<qty) throw new Error('out_of_stock');
+          transaction.update(productRef,{stock:stock-qty,withdrawn:Number(productSnap.data().withdrawn||0)+qty,updatedAt:serverTimestamp()});
+        });
+        updates.inventoryDeducted=true;
+      }
+      transaction.update(orderRef,updates);
+    });
     toast(status==='delivered'?'تم تسجيل التسليم باسمك ورقمك':'تم تحديث حالة الطلب');
-  }catch(e){toast('تعذر تحديث الطلب')}
+  }catch(e){toast(e.message==='out_of_stock'?'الكمية غير متاحة في المخزون':e.message==='medicine_not_registered'?'يوجد دواء في الروشتة غير مسجل في المنتجات':'تعذر تحديث الطلب')}
 };
