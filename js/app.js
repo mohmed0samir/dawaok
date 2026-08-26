@@ -8,12 +8,10 @@ import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   signOut, onAuthStateChanged, updateProfile
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const app     = initializeApp(firebaseConfig);
 const db      = getFirestore(app);
 const auth    = getAuth(app);
-const storage = getStorage(app);
 
 // ══════════════════════════════════════════════
 // STATE
@@ -571,11 +569,9 @@ window.submitRxOrder = async () => {
   try {
     const imageBase64 = rxBase64.split(',')[1];
     const mimeType = rxBase64.split(';')[0].split(':')[1] || 'image/jpeg';
-    const blob = await (await fetch(rxBase64)).blob();
-    const fileName = `prescriptions/${Date.now()}-${Math.random().toString(36).slice(2)}.${mimeType.split('/')[1] || 'jpg'}`;
-    const storageRef = ref(storage, fileName);
-    await uploadBytes(storageRef, blob, { contentType: mimeType });
-    const prescriptionImageUrl = await getDownloadURL(storageRef);
+    if (imageBase64.length > 14 * 1024 * 1024) {
+      return toast('⚠️ صورة الروشتة كبيرة جدًا، اختار صورة أصغر من 10MB');
+    }
 
     const rxOrderCode = 'RX-' + Date.now();
     const orderRef = await addDoc(collection(db, 'orders'), {
@@ -587,7 +583,7 @@ window.submitRxOrder = async () => {
       total: null,
       deliveryFee: 25,
       grandTotal: null,
-      prescriptionImageUrl,
+      prescriptionImageUrl: null,
       pricingStatus: 'pending',
       status: 'pending',
       createdAt: serverTimestamp(),
@@ -605,7 +601,19 @@ window.submitRxOrder = async () => {
       }
     );
     const result = await res.json();
-    if (!res.ok || !result.success) console.warn('Telegram notification failed:', result);
+    if (!res.ok || !result.success) {
+      console.warn('Prescription function failed:', result);
+      throw new Error(result?.error || 'prescription_function_failed');
+    }
+
+    // Cloud Function uploads the image server-side, so the browser never
+    // talks directly to Firebase Storage (this avoids Storage CORS errors).
+    if (result.prescriptionImageUrl) {
+      await updateDoc(orderRef, {
+        prescriptionImageUrl: result.prescriptionImageUrl,
+        updatedAt: serverTimestamp()
+      });
+    }
 
     closeRx();
     clearRx();
