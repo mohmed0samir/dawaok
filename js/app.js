@@ -59,8 +59,14 @@ async function loadMyOrders() {
       el.innerHTML = '<div class="account-empty" style="padding:18px;"><div class="em">📦</div><p>مفيش طلبات لسه</p></div>';
       return;
     }
+    // العميل يشوف كل الطلبات الحالية، لكن سجل الطلبات السابقة
+    // يقتصر على آخر 4 طلبات فقط. لا نحذف أي طلب من Firestore،
+    // لذلك الأدمن يظل قادرًا على رؤية كل الطلبات القديمة.
     const active = docs.filter(x => !['delivered','cancelled'].includes(x.status));
-    const old = docs.filter(x => ['delivered','cancelled'].includes(x.status));
+    const old = docs
+      .filter(x => ['delivered','cancelled'].includes(x.status))
+      .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+      .slice(0, 4);
     const card = x => {
       const isRx = x.type === 'prescription';
       const price = x.total != null ? `${x.grandTotal != null ? x.grandTotal : x.total} جنيه` : 'في انتظار التسعير';
