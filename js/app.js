@@ -142,9 +142,9 @@ function renderProducts() {
     const finalPrice = p.discount ? Math.round(p.price * (1 - p.discount/100)) : p.price;
     return `
     <div class="product-card ${!inStock ? 'out-of-stock' : ''}">
-      <div class="product-img" style="${p.imageUrl ? 'background:#1a2940;' : ''}">
+      <div class="product-img">
         ${p.imageUrl
-          ? `<img src="${p.imageUrl}" style="width:110px;height:110px;object-fit:contain;border-radius:8px;" alt="${p.name}">`
+          ? `<img src="${p.imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="${p.name}">`
           : (p.emoji || '💊')}
         ${badgeHtml}
         ${!inStock ? '<div class="out-badge">غير متاح في الوقت الحالي</div>' : ''}

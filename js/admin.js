@@ -106,8 +106,24 @@ function closeModal(id){
 }
 
 function viewRx(url){
-  document.getElementById('rxViewImg').src = url;
+  const image=document.getElementById('rxViewImg');
+  image.src = url;
+  image.classList.remove('zoomed');
   openModal('rxView');
+}
+
+function toggleRxZoom(){
+  document.getElementById('rxViewImg').classList.toggle('zoomed');
+}
+
+async function fullscreenRx(){
+  const frame=document.querySelector('.rx-image-frame');
+  if(!frame) return;
+  if(document.fullscreenElement){
+    await document.exitFullscreen();
+  }else if(frame.requestFullscreen){
+    await frame.requestFullscreen();
+  }
 }
 
 /* ─── EMOJI PICKER ─── */

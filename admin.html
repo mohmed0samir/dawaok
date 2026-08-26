@@ -275,7 +275,13 @@
 <div class="modal-bg rx-view-modal" id="modal-rxView">
   <div class="modal">
     <div class="modal-title">🧾 صورة الروشتة</div>
-    <img id="rxViewImg" src="">
+    <div class="rx-image-toolbar">
+      <button type="button" class="btn-sm" onclick="toggleRxZoom()">🔍 تكبير / تصغير</button>
+      <button type="button" class="btn-sm" onclick="fullscreenRx()">⛶ ملء الشاشة</button>
+    </div>
+    <div class="rx-image-frame">
+      <img id="rxViewImg" src="" onclick="toggleRxZoom()" alt="صورة الروشتة">
+    </div>
     <div class="modal-btns">
       <button class="mbtn-cancel" onclick="closeModal('rxView')">إغلاق</button>
     </div>
