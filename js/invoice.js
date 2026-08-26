@@ -85,15 +85,15 @@ function renderInvoice(data) {
     <div class="success-banner rx">
       <div class="success-icon">🧾</div>
       <div class="success-text">
-        <h3>تم استلام روشتتك بنجاح!</h3>
-        <p>${data.total != null ? 'تمت مراجعة الروشتة وتحديد السعر والتوصيل. تقدر تراجع الفاتورة من طلباتك في أي وقت.' : 'الصيدلي بيراجعها دلوقتي وهيحدد السعر والتوصيل. تقدر ترجع للطلب من «طلباتي» في أي وقت.'}</p>
+        <h3>${data.status === 'delivered' ? 'تم تسليم طلبك بنجاح!' : 'تم استلام روشتتك بنجاح!'}</h3>
+        <p>${data.status === 'delivered' && data.deliveredBy ? `استلمه المندوب ${data.deliveredBy.name || '—'} ورقم هاتفه ${data.deliveredBy.phone || '—'}` : (data.total != null ? 'تمت مراجعة الروشتة وتحديد السعر والتوصيل. تقدر تراجع الفاتورة من طلباتك في أي وقت.' : 'الصيدلي بيراجعها دلوقتي وهيحدد السعر والتوصيل. تقدر ترجع للطلب من «طلباتي» في أي وقت.')}</p>
       </div>
     </div>` : `
     <div class="success-banner">
       <div class="success-icon">🎉</div>
       <div class="success-text">
-        <h3>تم استلام طلبك بنجاح!</h3>
-        <p>فريقنا بيجهز طلبك دلوقتي — هتوصلك في أقرب وقت</p>
+        <h3>${data.status === 'delivered' ? 'تم تسليم طلبك بنجاح!' : 'تم استلام طلبك بنجاح!'}</h3>
+        <p>${data.status === 'delivered' && data.deliveredBy ? `استلمه المندوب ${data.deliveredBy.name || '—'} ورقم هاتفه ${data.deliveredBy.phone || '—'}` : 'فريقنا بيجهز طلبك دلوقتي — هتوصلك في أقرب وقت'}</p>
       </div>
     </div>`;
 

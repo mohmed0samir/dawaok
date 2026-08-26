@@ -254,7 +254,7 @@ function renderOrders(){
     return `<tr>
       <td>${typeChip(x)}</td>
       <td><code style="font-size:10px;color:var(--teal)">${x.orderId||x.docId.slice(0,8)}</code></td>
-      <td><b>${x.customer?.name||'—'}</b><br><small style="color:var(--muted)">${x.customer?.address||''}</small></td>
+      <td><b>${x.customer?.name||'—'}</b><br><small style="color:var(--muted)">${x.customer?.address||''}</small>${x.deliveredBy ? `<br><small style="color:var(--teal)">🚚 سلّمها: ${x.deliveredBy.name||'—'} — ${x.deliveredBy.phone||'—'}</small>` : ''}</td>
       <td style="color:var(--teal)">${x.customer?.phone||'—'}</td>
       <td style="font-size:11px;color:var(--muted);max-width:170px;">${itemsCell}</td>
       <td style="color:var(--gold);font-weight:800">${x.type==='prescription'?(x.total!=null?(x.total)+' ج':'يحدد لاحقاً'):(x.total||0)+' ج'}</td>

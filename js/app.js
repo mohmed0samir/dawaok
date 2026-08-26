@@ -6,12 +6,14 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged, updateProfile
+  signOut, onAuthStateChanged, updateProfile, setPersistence, browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const app     = initializeApp(firebaseConfig);
 const db      = getFirestore(app);
 const auth    = getAuth(app);
+const authPersistenceReady = setPersistence(auth, browserLocalPersistence)
+  .catch(e => { console.error('تعذر حفظ جلسة العميل:', e); });
 
 // ══════════════════════════════════════════════
 // STATE
@@ -33,11 +35,25 @@ function rememberOrderId(id) {
   localStorage.setItem('myOrderIds', JSON.stringify(ids.slice(0, 30)));
 }
 
+async function claimGuestOrders(user) {
+  const ids = JSON.parse(localStorage.getItem('myOrderIds') || '[]');
+  if (!ids.length) return;
+  await Promise.all(ids.map(async id => {
+    const ref = doc(db, 'orders', id);
+    const snap = await getDoc(ref);
+    if (snap.exists() && !snap.data().userId) await updateDoc(ref, { userId: user.uid });
+  }));
+}
+
 function orderInvoiceUrl(id) {
   return 'invoice.html?order=' + encodeURIComponent(id);
 }
 
-function statusLabel(s) {
+function statusLabel(s, order) {
+  if (s === 'delivered' && order?.deliveredBy) {
+    const courier = order.deliveredBy;
+    return `✅ تم الاستلام من المندوب ${courier.name || '—'} ورقمه ${courier.phone || '—'}`;
+  }
   return ({pending:'🟡 طلب جديد / قيد المراجعة', priced:'🟢 تم التسعير', ready:'🔵 جاهز للتوصيل', assigned:'🟣 تم تعيين مندوب', picked_up:'📦 استلم المندوب الطلب', out_for_delivery:'🟠 جاري التوصيل', confirmed:'✅ مؤكد وجاهز للتوصيل', delivered:'✅ تم التسليم', cancelled:'❌ ملغي'})[s] || '—';
 }
 
@@ -73,7 +89,7 @@ async function loadMyOrders() {
       const progress = ['pending','priced','ready','assigned','picked_up','out_for_delivery','delivered'];
       const step = Math.max(0, progress.indexOf(x.status));
       return `<div class="my-order-card">
-        <div class="my-order-top"><b>${isRx?'🧾 روشتة':'🛒 منتجات'}</b><span>${statusLabel(x.status)}</span></div>
+        <div class="my-order-top"><b>${isRx?'🧾 روشتة':'🛒 منتجات'}</b><span>${statusLabel(x.status, x)}</span></div>
         <div class="my-order-id">${x.orderId || x.id.slice(0,10)}</div>
         <div class="my-order-price">${price}</div>
         ${x.status !== 'cancelled' ? `<div class="order-progress" aria-label="حالة الطلب"><i style="width:${Math.max(8, step / 6 * 100)}%"></i></div>` : ''}
@@ -302,11 +318,11 @@ window.placeOrder = async () => {
 
     cart = [];
     saveCart();
+    rememberOrderId(ref.id);
     closeCart();
     toast('🎉 تم إرسال طلبك بنجاح!');
 
     setTimeout(() => {
-      rememberOrderId(ref.id);
       window.location.href = orderInvoiceUrl(ref.id);
     }, 1200);
 
@@ -341,6 +357,7 @@ window.doCustomerRegister = async () => {
   if (!name || !phone || !email || !pass) return showAuthError('اكتب كل الحقول');
   if (pass.length < 6) return showAuthError('كلمة المرور لازم 6 أحرف على الأقل');
   try {
+    await authPersistenceReady;
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     await updateProfile(cred.user, { displayName: name });
     await setDoc(doc(db, 'users', cred.user.uid), {
@@ -357,6 +374,7 @@ window.doCustomerLogin = async () => {
   const pass  = document.getElementById('loginPassword').value;
   if (!email || !pass) return showAuthError('اكتب البريد وكلمة المرور');
   try {
+    await authPersistenceReady;
     await signInWithEmailAndPassword(auth, email, pass);
     toast('👋 أهلاً بيك تاني!');
   } catch(e) {
@@ -393,6 +411,7 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById('profName').textContent = profile.name || 'مستخدم';
     document.getElementById('profEmail').textContent = profile.email || '';
     document.getElementById('avatarInitial').textContent = (profile.name||'؟').trim()[0] || '؟';
+    try { await claimGuestOrders(user); } catch (e) { console.error('تعذر ربط طلبات الضيف بالحساب:', e); }
     listenAddresses(user.uid);
     loadMyOrders();
   } else {

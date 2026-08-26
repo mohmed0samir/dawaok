@@ -43,4 +43,14 @@ function render(data){
     return `<article class="order"><div class="order-top"><div><h3>${x.customer?.name||'عميل'} <small>#${x.orderId||x.id.slice(0,8)}</small></h3><p>📱 ${x.customer?.phone||'—'}<br>📍 ${x.customer?.address||'—'}</p></div><span class="pill">${labels[x.status]||x.status}</span></div><p>🧾 ${(x.items||[]).map(i=>`${i.name} ×${i.qty}`).join('، ')||'روشتة قيد المراجعة'}</p><div class="money">المطلوب تحصيله: ${x.grandTotal??x.total??'يحدد لاحقًا'} جنيه</div><div class="actions"><a class="map" target="_blank" rel="noopener" href="${map}">🗺️ فتح الموقع في Google Maps</a>${next?`<button onclick="moveOrder('${x.id}','${next[0]}')">${next[1]}</button>`:''}</div></article>`;
   }).join('');
 }
-window.moveOrder=async(id,status)=>{try{await updateDoc(doc(db,'orders',id),{status,updatedAt:serverTimestamp(),paymentCollected:status==='delivered'?true:false});toast('تم تحديث حالة الطلب')}catch(e){toast('تعذر تحديث الطلب')}};
+window.moveOrder=async(id,status)=>{
+  try{
+    const updates={status,updatedAt:serverTimestamp(),paymentCollected:status==='delivered'?true:false};
+    if(status==='delivered'){
+      updates.deliveredBy={uid:courier.uid,name:courier.name||'',phone:courier.phone||''};
+      updates.deliveredAt=serverTimestamp();
+    }
+    await updateDoc(doc(db,'orders',id),updates);
+    toast(status==='delivered'?'تم تسجيل التسليم باسمك ورقمك':'تم تحديث حالة الطلب');
+  }catch(e){toast('تعذر تحديث الطلب')}
+};
