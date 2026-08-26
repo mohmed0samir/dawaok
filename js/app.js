@@ -707,6 +707,9 @@ window.submitRxOrder = async () => {
       console.warn('Vercel Telegram API failed:', result);
       throw new Error(result?.error || 'telegram_send_failed');
     }
+    if (result.prescriptionTelegramFileId) {
+      await updateDoc(orderRef, { prescriptionTelegramFileId: result.prescriptionTelegramFileId });
+    }
 
     closeRx();
     clearRx();

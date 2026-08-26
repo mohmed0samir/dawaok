@@ -220,6 +220,12 @@ function typeChip(x){
     : `<span class="order-type-chip prod">🛒 منتجات</span>`;
 }
 
+function prescriptionImageSrc(order){
+  return order.prescriptionTelegramFileId
+    ? `/api/getPrescriptionImage?fileId=${encodeURIComponent(order.prescriptionTelegramFileId)}`
+    : order.prescriptionImageUrl || '';
+}
+
 /* ─── DASHBOARD ORDERS ─── */
 function renderDashOrders(){
   const o=window._orders||[];
@@ -245,8 +251,9 @@ function renderOrders(){
     let itemsCell;
     if(x.type==='prescription'){
       const medsTxt=(x.items||[]).map(i=>i.name).join('، ')||'—';
-      itemsCell = x.prescriptionImageUrl
-        ? `<img class="rx-thumb" src="${x.prescriptionImageUrl}" onclick="viewRx('${x.prescriptionImageUrl}')" title="اضغط لعرض الروشتة كاملة"><br><small style="color:var(--muted)">${medsTxt}</small>`
+      const prescriptionSrc=prescriptionImageSrc(x);
+      itemsCell = prescriptionSrc
+        ? `<img class="rx-thumb" src="${prescriptionSrc}" onclick="viewRx('${prescriptionSrc}')" title="اضغط لعرض الروشتة كاملة"><br><small style="color:var(--muted)">${medsTxt}</small>`
         : medsTxt;
     } else {
       itemsCell = (x.items||[]).map(i=>`${i.name}×${i.qty}`).join('، ');
@@ -419,7 +426,8 @@ async function openRxPricing(id){
   pricingOrderId=id;
   document.getElementById('rxPriceOrderInfo').textContent=`${x.orderId||id.slice(0,10)} — ${x.customer?.name||'—'} — ${x.customer?.phone||'—'}`;
   document.getElementById('rxDeliveryFee').value=x.deliveryFee!=null?x.deliveryFee:25;
-  document.getElementById('rxPriceItems').innerHTML = x.prescriptionImageUrl ? `<img src="${x.prescriptionImageUrl}" style="max-width:100%;max-height:180px;border-radius:10px;object-fit:contain;background:#fff;">` : '';
+  const prescriptionSrc=prescriptionImageSrc(x);
+  document.getElementById('rxPriceItems').innerHTML = prescriptionSrc ? `<div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px;">🧾 صورة الروشتة</div><img src="${prescriptionSrc}" style="max-width:100%;max-height:180px;border-radius:10px;object-fit:contain;background:#fff;"><br><button type="button" class="add-addr-btn" style="margin-top:8px;" onclick="viewRx('${prescriptionSrc}')">فتح الصورة</button>` : '<div style="font-size:12px;color:var(--muted);">صورة الروشتة غير متاحة لهذا الطلب</div>';
   renderRxProductOptions();
   rxMedicationRows = Array.isArray(x.items) && x.items.length
     ? x.items.map(i=>({name:i.name||'',qty:i.qty||1,price:i.price!=null?i.price:'',productId:i.productId||null}))

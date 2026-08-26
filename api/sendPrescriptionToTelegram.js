@@ -96,7 +96,12 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: 'telegram_photo_error' });
     }
 
-    return res.status(200).json({ success: true });
+    const photo = result.result?.photo || [];
+    const telegramPhoto = photo[photo.length - 1];
+    return res.status(200).json({
+      success: true,
+      prescriptionTelegramFileId: telegramPhoto?.file_id || null
+    });
   } catch (error) {
     console.error('sendPrescriptionToTelegram error:', error);
     return res.status(500).json({ error: 'internal_error' });

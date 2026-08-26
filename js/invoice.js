@@ -51,6 +51,12 @@ function statusInfo(s) {
   }[s] || ['—', 'status-pending'];
 }
 
+function prescriptionImageSrc(data) {
+  return data.prescriptionTelegramFileId
+    ? `/api/getPrescriptionImage?fileId=${encodeURIComponent(data.prescriptionTelegramFileId)}`
+    : data.prescriptionImageUrl || '';
+}
+
 function renderInvoice(data) {
   const isRx = data.type === 'prescription';
   const [sLabel, sCls] = statusInfo(data.status || 'pending');
@@ -75,11 +81,17 @@ function renderInvoice(data) {
     </tr>`;
   }).join('');
 
-  const rxBoxHTML = isRx && data.prescriptionImageUrl ? `
-    <div class="rx-box">
-      <img src="${data.prescriptionImageUrl}" alt="روشتة">
-      <div class="rx-note">📋 صورة الروشتة اللي اترفعت — الصيدلي هيراجعها ويأكد الأسعار والتوافر</div>
-    </div>` : '';
+  const prescriptionSrc = prescriptionImageSrc(data);
+  const rxBoxHTML = isRx ? `
+    <section class="rx-box">
+      <div class="section-heading">🧾 الروشتة الأصلية</div>
+      ${prescriptionSrc ? `<img src="${prescriptionSrc}" alt="الروشتة الأصلية"><a class="rx-open-link" href="${prescriptionSrc}" target="_blank" rel="noopener">فتح الصورة</a>` : '<div class="rx-note">صورة الروشتة غير متاحة لهذا الطلب</div>'}
+    </section>` : '';
+
+  const progressStates = ['pending','priced','ready','assigned','picked_up','out_for_delivery','delivered'];
+  const progressLabels = ['طلب جديد','مراجعة','تسعير','تجهيز','استلام المندوب','توصيل','تم التسليم'];
+  const progressIndex = Math.max(0, progressStates.indexOf(data.status || 'pending'));
+  const progressHTML = `<section class="medical-progress"><div class="section-heading">📋 مسار الطلب</div><div class="progress-track">${progressLabels.map((label,index)=>`<div class="progress-step ${index <= progressIndex ? 'active' : ''} ${index === progressIndex ? 'current' : ''}"><span>${index < progressIndex ? '✓' : index + 1}</span><b>${label}</b></div>`).join('')}</div></section>`;
 
   const bannerHTML = isRx ? `
     <div class="success-banner rx">
@@ -115,12 +127,13 @@ function renderInvoice(data) {
       <div class="inv-header">
         <div>
           <div class="inv-brand-name">✚ Dawaok | دواوك</div>
-          <div class="inv-brand-sub">صيدليتك الإلكترونية</div>
+          <div class="inv-brand-sub">صيدلية دواوك</div>
+          <div class="inv-brand-sub">فاتورة صيدلية / طلب روشتة</div>
           <div class="inv-brand-sub" style="margin-top:6px;">📞 19998 &nbsp;|&nbsp; dawaok.com</div>
         </div>
         <div style="text-align:center;">
           <div class="inv-badge">
-            <div class="inv-badge-label">رقم الطلب</div>
+            <div class="inv-badge-label">Order ID</div>
             <div class="inv-badge-val">${data.orderId || data.docId.slice(0,10)}</div>
           </div>
           <div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:8px;">${createdAt}</div>
@@ -129,11 +142,11 @@ function renderInvoice(data) {
       <div class="inv-body">
         <div class="inv-meta">
           <div class="inv-meta-block">
-            <label>بيانات العميل</label>
+            <label>👤 بيانات العميل</label>
             <div class="val">${data.customer?.name || '—'}</div>
             <div class="val hl">📞 ${data.customer?.phone || '—'}</div>
             <div style="font-size:12px;color:#7a8fa8;margin-top:4px;">📍 ${data.customer?.address || '—'}</div>
-            ${data.customer?.location ? `<a href="https://www.google.com/maps/search/?api=1&query=${data.customer.location.lat},${data.customer.location.lng}" target="_blank" rel="noopener" style="display:inline-block;margin-top:7px;color:#008c73;font-size:12px;font-weight:800;">🗺️ فتح الموقع في Google Maps</a>` : ''}
+            ${data.customer?.location ? `<a href="https://www.google.com/maps/search/?api=1&query=${data.customer.location.lat},${data.customer.location.lng}" target="_blank" rel="noopener" style="display:inline-block;margin-top:7px;color:#008c73;font-size:12px;font-weight:800;">📍 فتح موقع العميل</a>` : ''}
           </div>
           <div class="inv-meta-block" style="text-align:left;">
             <label>تفاصيل الفاتورة</label>
@@ -146,6 +159,8 @@ function renderInvoice(data) {
           <tbody>${itemsHTML}</tbody>
         </table>` : ''}
         ${totalsHTML}
+        <div class="payment-box"><b>طريقة الدفع: الدفع عند الاستلام</b><span>💵 المبلغ المطلوب تحصيله: ${grandTotal} جنيه</span><span class="payment-status ${data.paymentCollected ? 'collected' : ''}">${data.paymentCollected ? '🟢 تم التحصيل' : '🟡 لم يتم التحصيل بعد'}</span></div>
+        ${progressHTML}
       </div>
       <div class="inv-footer">
         <div>
