@@ -226,6 +226,10 @@ function prescriptionImageSrc(order){
     : order.prescriptionImageUrl || '';
 }
 
+function prescriptionImageFallback(order){
+  return order.prescriptionTelegramFileId || order.prescriptionImageUrl ? 'الصورة لم يتم تحميلها' : 'صورة غير متاحة لهذا الطلب';
+}
+
 /* ─── DASHBOARD ORDERS ─── */
 function renderDashOrders(){
   const o=window._orders||[];
@@ -266,7 +270,7 @@ function renderOrders(){
       <td style="color:var(--gold);font-weight:800">${x.type==='prescription'?(x.grandTotal!=null?(x.grandTotal)+' ج':x.total!=null?(x.total)+' ج':'يحدد لاحقاً'):(x.total||0)+' ج'}</td>
       <td>${chip(x.status)}</td>
       <td>
-        ${x.type==='prescription' ? (prescriptionSrc ? `<button class="abtn inv" onclick="viewRx('${prescriptionSrc}')">🧾 صورة الروشتة</button>` : '<small style="color:var(--muted)">صورة غير متاحة</small>') : ''}
+        ${x.type==='prescription' ? (prescriptionSrc ? `<button class="abtn inv" onclick="viewRx('${prescriptionSrc}')">🧾 صورة الروشتة</button>` : `<small style="color:var(--muted)">${prescriptionImageFallback(x)}</small>`) : ''}
         ${x.type==='prescription' && x.status!=='delivered' && x.status!=='cancelled'?`<button class="abtn ok" onclick="openRxPricing('${x.docId}')">💰 ${x.total!=null?'تعديل السعر':'تسعير'}</button>`:''}
         ${x.type!=='prescription' && x.status==='pending'?`<button class="abtn ok" onclick="updOrder('${x.docId}','confirmed')">✅ تأكيد</button>`:''}
         ${['confirmed','priced'].includes(x.status)?`<button class="abtn dlv" onclick="updOrder('${x.docId}','ready')">🚚 تجهيز للتوصيل</button>`:''}

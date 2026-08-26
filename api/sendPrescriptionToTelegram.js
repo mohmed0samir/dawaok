@@ -96,11 +96,16 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: 'telegram_photo_error' });
     }
 
-    const photo = result.result?.photo || [];
-    const telegramPhoto = photo[photo.length - 1];
+    const photo = Array.isArray(result.result?.photo) ? result.result.photo : [];
+    const telegramPhoto = photo.reduce((largest, current) =>
+      !largest || Number(current.file_size || 0) >= Number(largest.file_size || 0) ? current : largest, null);
+    if (!telegramPhoto?.file_id) {
+      console.error('Telegram response did not contain a photo file_id:', result);
+      return res.status(502).json({ error: 'telegram_file_id_missing' });
+    }
     return res.status(200).json({
       success: true,
-      prescriptionTelegramFileId: telegramPhoto?.file_id || null
+      prescriptionTelegramFileId: telegramPhoto.file_id
     });
   } catch (error) {
     console.error('sendPrescriptionToTelegram error:', error);
