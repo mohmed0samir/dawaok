@@ -1,7 +1,7 @@
 import { firebaseConfig } from './firebase-config.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc, getDoc, getDocs, limit, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc, getDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app=initializeApp(firebaseConfig,'deliveryPortal'), auth=getAuth(app), db=getFirestore(app);
 let unsubscribe=null, courier=null;
@@ -12,8 +12,6 @@ window.startDelivery=async()=>{
   const email=document.getElementById('courierEmail').value.trim(), password=document.getElementById('courierPassword').value;
   if(!email||!password)return toast('اكتب البريد وكلمة المرور');
   try{
-    const courierSnap=await getDocs(query(collection(db,'deliveryAgents'),where('email','==',email),limit(1)));
-    if(courierSnap.empty)return toast('استخدم بريد حساب المندوب، وليس بريد حساب العميل');
     await signInWithEmailAndPassword(auth,email,password)
   }
   catch(e){toast(e.code==='auth/invalid-credential'?'بيانات الدخول غير صحيحة':'تعذر تسجيل الدخول')}
@@ -24,7 +22,7 @@ onAuthStateChanged(auth,async user=>{
   if(!user)return;
   try{
     const snap=await getDoc(doc(db,'deliveryAgents',user.uid));
-    if(!snap.exists()||snap.data().active===false){await signOut(auth);return toast('هذا البريد تابع للعميل وليس لحساب مندوب نشط')}
+    if(!snap.exists()||snap.data().active===false){await signOut(auth);return toast('بيانات الدخول غير صحيحة')}
     courier={uid:user.uid,...snap.data()}; load();
   }catch(e){toast('تعذر تحميل بيانات المندوب')}
 });
