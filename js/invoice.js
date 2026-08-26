@@ -33,7 +33,7 @@ function showNotFound() {
       <div class="em">🧾</div>
       <h2 style="color:var(--text);margin-bottom:8px;">مفيش فاتورة</h2>
       <p>اتجه للمتجر وأتم طلبك أولاً</p><br>
-      <button class="btn btn-teal" onclick="location.href='https://exquisite-entremet-a37eef.netlify.app/'" style="margin:auto;">🏪 روح للمتجر</button>
+      <button class="btn btn-teal" onclick="location.href='https://dawaok.vercel.app/'" style="margin:auto;">🏪 روح للمتجر</button>
     </div>`;
 }
 
