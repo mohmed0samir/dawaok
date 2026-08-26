@@ -308,7 +308,15 @@ function renderCouriers(){
   if(!el) return;
   const list=window._couriers||[];
   if(!list.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">لا يوجد مندوبون بعد</div>';return;}
-  el.innerHTML=list.map(c=>`<div class="prod-row"><div class="prod-thumb">🚚</div><div class="prod-info"><div class="prod-name">${c.name||'مندوب'}</div><div class="prod-meta">${c.phone||'—'} · ${c.email||''}</div></div><span class="stk ok">نشط</span></div>`).join('');
+  el.innerHTML=list.map(c=>`<div class="prod-row"><div class="prod-thumb">🚚</div><div class="prod-info"><div class="prod-name">${c.name||'مندوب'}</div><div class="prod-meta">${c.phone||'—'} · ${c.email||''}</div></div><span class="stk ok">نشط</span><button class="del-btn" onclick="deleteCourier('${c.uid}','${String(c.name||'مندوب').replace(/'/g,'')}')">🗑 حذف</button></div>`).join('');
+}
+
+async function deleteCourier(uid,name){
+  if(!confirm(`حذف حساب المندوب ${name}؟ لن يستطيع دخول بوابة التوصيل بعد ذلك.`)) return;
+  try{
+    await window._db.collection('deliveryAgents').doc(uid).delete();
+    toast('✅ تم حذف حساب المندوب');
+  }catch(e){toast('❌ تعذر حذف حساب المندوب');}
 }
 
 async function createCourier(){
@@ -333,6 +341,25 @@ function viewInv(docId){
 
 let rxMedicationRows = [];
 
+function normalizeProductName(name){
+  return String(name).trim().toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/\s+/g,' ');
+}
+
+function productSellingPrice(product){
+  return product.discount ? Math.round(product.price * (1 - product.discount / 100)) : Number(product.price || 0);
+}
+
+function findRxProduct(name){
+  const normalized=normalizeProductName(name);
+  return (window._products||[]).find(product=>normalizeProductName(product.name)===normalized);
+}
+
+function renderRxProductOptions(){
+  const list=document.getElementById('rxProductOptions');
+  if(!list) return;
+  list.innerHTML=(window._products||[]).map(product=>`<option value="${String(product.name).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}"></option>`).join('');
+}
+
 function calcRxPricingTotals(){
   let total = 0;
   rxMedicationRows.forEach((_, i) => {
@@ -351,9 +378,9 @@ function renderRxMedicationRows(){
   if(!wrap) return;
   wrap.innerHTML=rxMedicationRows.map((row,i)=>`
     <div style="display:grid;grid-template-columns:1fr 58px 90px 38px;gap:7px;margin-bottom:8px;align-items:center;">
-      <input class="modal-field" style="margin:0;" type="text" id="rxMedName_${i}" value="${String(row.name||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;')}" placeholder="اسم الدواء" oninput="updateRxMedicationRow(${i})">
+      <input class="modal-field" style="margin:0;" type="text" list="rxProductOptions" id="rxMedName_${i}" value="${String(row.name||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;')}" placeholder="ابحث واختر الدواء" oninput="updateRxMedicationRow(${i})">
       <input class="modal-field" style="margin:0;" type="number" id="rxMedQty_${i}" min="1" step="1" value="${row.qty!=null?row.qty:1}" placeholder="كم" oninput="updateRxMedicationRow(${i})">
-      <input class="modal-field" style="margin:0;" type="number" id="rxMedPrice_${i}" min="0" step="0.01" value="${row.price!=null?row.price:''}" placeholder="سعر الوحدة" oninput="updateRxMedicationRow(${i})">
+      <input class="modal-field" style="margin:0;" type="number" id="rxMedPrice_${i}" min="0" step="0.01" value="${row.price!=null?row.price:''}" placeholder="السعر تلقائي" readonly>
       <button type="button" class="del-btn" style="height:42px;" onclick="removeRxMedicationRow(${i})">🗑</button>
     </div>`).join('');
   calcRxPricingTotals();
@@ -363,7 +390,14 @@ function updateRxMedicationRow(i){
   const n=document.getElementById(`rxMedName_${i}`);
   const p=document.getElementById(`rxMedPrice_${i}`);
   const q=document.getElementById(`rxMedQty_${i}`);
-  if(rxMedicationRows[i]){ rxMedicationRows[i].name=n?.value||''; rxMedicationRows[i].price=p?.value||''; rxMedicationRows[i].qty=q?.value||1; }
+  if(rxMedicationRows[i]){
+    const product=findRxProduct(n?.value||'');
+    rxMedicationRows[i].name=n?.value||'';
+    rxMedicationRows[i].qty=q?.value||1;
+    rxMedicationRows[i].productId=product?.docId||null;
+    rxMedicationRows[i].price=product ? productSellingPrice(product) : '';
+    if(p) p.value=rxMedicationRows[i].price;
+  }
   calcRxPricingTotals();
 }
 
@@ -386,10 +420,12 @@ async function openRxPricing(id){
   document.getElementById('rxPriceOrderInfo').textContent=`${x.orderId||id.slice(0,10)} — ${x.customer?.name||'—'} — ${x.customer?.phone||'—'}`;
   document.getElementById('rxDeliveryFee').value=x.deliveryFee!=null?x.deliveryFee:25;
   document.getElementById('rxPriceItems').innerHTML = x.prescriptionImageUrl ? `<img src="${x.prescriptionImageUrl}" style="max-width:100%;max-height:180px;border-radius:10px;object-fit:contain;background:#fff;">` : '';
+  renderRxProductOptions();
   rxMedicationRows = Array.isArray(x.items) && x.items.length
-    ? x.items.map(i=>({name:i.name||'',qty:i.qty||1,price:i.price!=null?i.price:''}))
+    ? x.items.map(i=>({name:i.name||'',qty:i.qty||1,price:i.price!=null?i.price:'',productId:i.productId||null}))
     : [{name:'',qty:1,price:''}];
   renderRxMedicationRows();
+  rxMedicationRows.forEach((_,i)=>updateRxMedicationRow(i));
   openModal('rxPrice');
 }
 
@@ -397,17 +433,19 @@ async function saveRxPricing(){
   if(!pricingOrderId) return;
   rxMedicationRows.forEach((_,i)=>updateRxMedicationRow(i));
   const items = rxMedicationRows
-    .map(row=>({name:String(row.name||'').trim(),qty:Number(row.qty),price:Number(row.price)}))
+    .map(row=>{
+      const product=findRxProduct(row.name);
+      return {name:String(row.name||'').trim(),qty:Number(row.qty),price:product ? productSellingPrice(product) : Number(row.price),product};
+    })
     .filter(row=>row.name);
   if(!items.length){toast('⚠️ أضف اسم دواء واحد على الأقل');return;}
+  if(items.some(row=>!row.product)){toast('⚠️ اختار كل دواء من قائمة منتجات النظام');return;}
   if(items.some(row=>!Number.isFinite(row.price)||row.price<0||!Number.isInteger(row.qty)||row.qty<1)){toast('⚠️ اكتب كمية وسعر صحيحين لكل دواء');return;}
   const total=items.reduce((sum,row)=>sum+row.price*row.qty,0);
   const delivery=Number(document.getElementById('rxDeliveryFee').value||0);
   if(!Number.isFinite(delivery)||delivery<0){toast('⚠️ اكتب رسوم توصيل صحيحة');return;}
-  const normalizeName=name=>String(name).trim().toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/\s+/g,' ');
   const savedItems=items.map(row=>{
-    const product=(window._products||[]).find(p=>normalizeName(p.name)===normalizeName(row.name));
-    return {name:row.name,price:row.price,qty:row.qty,emoji:'💊',imageUrl:null,productId:product?.docId||null};
+    return {name:row.name,price:row.price,qty:row.qty,emoji:'💊',imageUrl:null,productId:row.product.docId};
   });
   try{
     await window._db.collection('orders').doc(pricingOrderId).update({

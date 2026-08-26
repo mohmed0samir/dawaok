@@ -6,7 +6,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged, updateProfile, setPersistence, browserLocalPersistence
+  signOut, onAuthStateChanged, updateProfile, deleteUser, setPersistence, browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const app     = initializeApp(firebaseConfig);
@@ -393,6 +393,25 @@ window.doCustomerLogout = async () => {
   await signOut(auth);
   toast('🚪 تم تسجيل الخروج');
   closeAccount();
+};
+
+window.deleteCustomerAccount = async () => {
+  if (!currentUser) return;
+  if (!confirm('حذف حسابك وعناوينك نهائيًا؟ الطلبات السابقة ستظل محفوظة لدى الصيدلية.')) return;
+  try {
+    const uid = currentUser.uid;
+    const addressSnap = await getDocs(collection(db, 'users', uid, 'addresses'));
+    const batch = writeBatch(db);
+    addressSnap.docs.forEach(address => batch.delete(address.ref));
+    batch.delete(doc(db, 'users', uid));
+    await batch.commit();
+    await deleteUser(currentUser);
+    closeAccount();
+    toast('✅ تم حذف حسابك نهائيًا');
+  } catch (e) {
+    console.error(e);
+    toast(e.code === 'auth/requires-recent-login' ? '⚠️ سجل الدخول مرة أخرى ثم حاول حذف الحساب' : '❌ تعذر حذف الحساب');
+  }
 };
 
 function translateAuthErr(e) {
