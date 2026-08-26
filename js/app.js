@@ -501,6 +501,8 @@ window.openAddressForm = () => {
   ['afLabel','afGov','afCity','afArea','afStreet','afBuilding','afFloor','afApt','afLandmark'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('afDefault').checked = myAddresses.length === 0;
   document.getElementById('addressFormWrap').style.display = 'block';
+  document.getElementById('addressFormWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('afLabel').focus({ preventScroll: true });
 };
 window.closeAddressForm = () => {
   document.getElementById('addressFormWrap').style.display = 'none';
@@ -523,6 +525,8 @@ window.editAddr = (id) => {
   document.getElementById('afLandmark').value = a.landmark||'';
   document.getElementById('afDefault').checked = !!a.isDefault;
   document.getElementById('addressFormWrap').style.display = 'block';
+  document.getElementById('addressFormWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('afLabel').focus({ preventScroll: true });
 };
 
 window.saveAddressForm = async () => {
