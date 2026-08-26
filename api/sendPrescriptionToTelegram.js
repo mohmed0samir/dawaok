@@ -9,8 +9,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
   try {
-    const { name, phone, address, imageBase64, mimeType, orderId } = req.body || {};
-    if (!name || !phone || !address || !imageBase64) {
+    const { name, phone, address, imageBase64, mimeType, orderId, orderDocId } = req.body || {};
+    if (!name || !phone || !address || !imageBase64 || !orderId || !orderDocId) {
       return res.status(400).json({ error: 'missing_data' });
     }
 
@@ -32,20 +32,56 @@ export default async function handler(req, res) {
       return res.status(413).json({ error: 'image_too_large' });
     }
 
-    const caption = [
+    const adminUrl = `https://dawaok.vercel.app/admin?order=${encodeURIComponent(orderDocId)}`;
+    const keyboard = {
+      inline_keyboard: [[
+        { text: '🧾 تعديل الفاتورة / الطلب', url: adminUrl }
+      ]]
+    };
+
+    // الرسالة الأولى: بيانات الطلب + زر يفتح الأدمن على نفس الطلب بعد تسجيل الدخول.
+    const orderMessage = [
       '🧾 طلب روشتة جديد',
       '',
       `👤 الاسم: ${name}`,
       `📱 الهاتف: ${phone}`,
       `📍 العنوان: ${address}`,
-      `🆔 رقم الطلب: ${orderId || '—'}`,
+      `🆔 رقم الطلب: ${orderId}`,
+      '',
+      '⏳ الحالة: في انتظار مراجعة الصيدلي'
+    ].join('\n');
+
+    const msgRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: orderMessage,
+        reply_markup: keyboard,
+        disable_web_page_preview: true
+      })
+    });
+    const msgResult = await msgRes.json();
+    if (!msgRes.ok || !msgResult.ok) {
+      console.error('Telegram sendMessage error:', msgResult);
+      return res.status(502).json({ error: 'telegram_message_error' });
+    }
+
+    // الرسالة الثانية: صورة الروشتة نفسها بتنسيق منفصل.
+    const photoCaption = [
+      '📷 صورة الروشتة',
+      '',
+      `👤 الاسم: ${name}`,
+      `📱 الهاتف: ${phone}`,
+      `📍 العنوان: ${address}`,
+      `🆔 رقم الطلب: ${orderId}`,
       '',
       '⏳ الحالة: طلب جديد'
     ].join('\n');
 
     const form = new FormData();
     form.append('chat_id', chatId);
-    form.append('caption', caption);
+    form.append('caption', photoCaption);
     form.append('photo', new Blob([buffer], { type: cleanMime }), `prescription.${ext}`);
 
     const telegramRes = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
@@ -55,8 +91,8 @@ export default async function handler(req, res) {
     const result = await telegramRes.json();
 
     if (!telegramRes.ok || !result.ok) {
-      console.error('Telegram API error:', result);
-      return res.status(502).json({ error: 'telegram_error' });
+      console.error('Telegram sendPhoto error:', result);
+      return res.status(502).json({ error: 'telegram_photo_error' });
     }
 
     return res.status(200).json({ success: true });

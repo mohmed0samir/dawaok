@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة الليزر — دواؤك</title>
+<title>لوحة الأدمن — دواؤك</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
 
 <!-- ══ FIREBASE SDK (compat) ══ -->
@@ -229,8 +229,18 @@
     <div class="modal-title">💰 تسعير الروشتة</div>
     <div id="rxPriceOrderInfo" style="font-size:12px;color:var(--muted);margin-bottom:12px;"></div>
     <div id="rxPriceItems" style="margin-bottom:12px;"></div>
-    <input class="modal-field" type="number" id="rxTotalPrice" min="0" step="0.01" placeholder="إجمالي الأدوية بالجنيه">
+    <div style="font-size:12px;font-weight:800;color:var(--muted);margin:4px 0 8px;">💊 أدوية الروشتة</div>
+    <div id="rxMedicationRows"></div>
+    <button type="button" class="add-addr-btn" style="margin-bottom:10px;" onclick="addRxMedicationRow()">＋ إضافة دواء</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:10px;">
+      <span style="font-weight:800;">إجمالي الأدوية</span>
+      <strong id="rxMedsTotal" style="color:var(--gold);font-size:17px;">0 جنيه</strong>
+    </div>
     <input class="modal-field" type="number" id="rxDeliveryFee" min="0" step="0.01" value="25" placeholder="رسوم التوصيل">
+    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,201,167,.08);border:1px solid rgba(0,201,167,.22);border-radius:10px;padding:11px 14px;margin-bottom:10px;">
+      <span style="font-weight:900;">الإجمالي الكلي</span>
+      <strong id="rxGrandTotal" style="color:var(--teal);font-size:18px;">25 جنيه</strong>
+    </div>
     <div class="modal-btns">
       <button class="mbtn-save" onclick="saveRxPricing()">💾 حفظ السعر وتأكيد الطلب</button>
       <button class="mbtn-cancel" onclick="closeModal('rxPrice')">إلغاء</button>

@@ -1,4 +1,6 @@
 /* ─── PASSWORD (hash stored in Firestore — nothing in code) ─── */
+let pendingAdminOrderId = new URLSearchParams(window.location.search).get('order') || null;
+let pendingAdminOrderHandled = false;
 async function sha256(t){
   const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
   return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -162,12 +164,35 @@ function initApp(){
     renderDashOrders();
     renderOrders();
     updateClearCount();
+    openPendingAdminOrder();
   }, err=>toast('❌ خطأ orders: '+err.message));
 
   db.collection('products').onSnapshot(snap=>{
     window._products=snap.docs.map(d=>({docId:d.id,...d.data()}));
     renderProducts();
   }, err=>toast('❌ خطأ products: '+err.message));
+}
+
+function openPendingAdminOrder(){
+  if(!pendingAdminOrderId || pendingAdminOrderHandled) return;
+  const order=(window._orders||[]).find(x=>x.docId===pendingAdminOrderId);
+  if(!order) return;
+
+  pendingAdminOrderHandled=true;
+  const ordersNav=document.querySelectorAll('.nav-item')[1];
+  showPage('orders',ordersNav);
+
+  if(order.type==='prescription'){
+    setTimeout(()=>openRxPricing(order.docId),80);
+  }else{
+    toast('ℹ️ تم فتح الطلب المطلوب. هذا الطلب ليس روشتة.');
+  }
+
+  // إزالة رقم الطلب من العنوان بعد فتحه، مع الإبقاء على الصفحة الحالية.
+  try{
+    const cleanUrl=window.location.pathname + window.location.hash;
+    window.history.replaceState({},document.title,cleanUrl);
+  }catch(e){}
 }
 
 /* ─── STATS ─── */
@@ -249,28 +274,90 @@ function viewInv(docId){
   window.open('invoice?order='+encodeURIComponent(docId),'_blank');
 }
 
+let rxMedicationRows = [];
+
+function calcRxPricingTotals(){
+  let total = 0;
+  rxMedicationRows.forEach((_, i) => {
+    const priceEl = document.getElementById(`rxMedPrice_${i}`);
+    const price = Number(priceEl?.value || 0);
+    if(Number.isFinite(price) && price >= 0) total += price;
+  });
+  const delivery = Number(document.getElementById('rxDeliveryFee')?.value || 0);
+  document.getElementById('rxMedsTotal').textContent = `${total.toFixed(2).replace(/\.00$/,'')} جنيه`;
+  document.getElementById('rxGrandTotal').textContent = `${(total + (Number.isFinite(delivery) ? delivery : 0)).toFixed(2).replace(/\.00$/,'')} جنيه`;
+  return { total, delivery };
+}
+
+function renderRxMedicationRows(){
+  const wrap=document.getElementById('rxMedicationRows');
+  if(!wrap) return;
+  wrap.innerHTML=rxMedicationRows.map((row,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 110px 38px;gap:7px;margin-bottom:8px;align-items:center;">
+      <input class="modal-field" style="margin:0;" type="text" id="rxMedName_${i}" value="${String(row.name||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;')}" placeholder="اسم الدواء" oninput="updateRxMedicationRow(${i})">
+      <input class="modal-field" style="margin:0;" type="number" id="rxMedPrice_${i}" min="0" step="0.01" value="${row.price!=null?row.price:''}" placeholder="السعر" oninput="updateRxMedicationRow(${i})">
+      <button type="button" class="del-btn" style="height:42px;" onclick="removeRxMedicationRow(${i})">🗑</button>
+    </div>`).join('');
+  calcRxPricingTotals();
+}
+
+function updateRxMedicationRow(i){
+  const n=document.getElementById(`rxMedName_${i}`);
+  const p=document.getElementById(`rxMedPrice_${i}`);
+  if(rxMedicationRows[i]){ rxMedicationRows[i].name=n?.value||''; rxMedicationRows[i].price=p?.value||''; }
+  calcRxPricingTotals();
+}
+
+function addRxMedicationRow(){
+  rxMedicationRows.push({name:'',price:''});
+  renderRxMedicationRows();
+  setTimeout(()=>document.getElementById(`rxMedName_${rxMedicationRows.length-1}`)?.focus(),0);
+}
+
+function removeRxMedicationRow(i){
+  rxMedicationRows.splice(i,1);
+  if(!rxMedicationRows.length) rxMedicationRows.push({name:'',price:''});
+  renderRxMedicationRows();
+}
+
 async function openRxPricing(id){
   const x=(window._orders||[]).find(o=>o.docId===id);
   if(!x) return;
   pricingOrderId=id;
   document.getElementById('rxPriceOrderInfo').textContent=`${x.orderId||id.slice(0,10)} — ${x.customer?.name||'—'} — ${x.customer?.phone||'—'}`;
-  document.getElementById('rxTotalPrice').value=x.total!=null?x.total:'';
   document.getElementById('rxDeliveryFee').value=x.deliveryFee!=null?x.deliveryFee:25;
   document.getElementById('rxPriceItems').innerHTML = x.prescriptionImageUrl ? `<img src="${x.prescriptionImageUrl}" style="max-width:100%;max-height:180px;border-radius:10px;object-fit:contain;background:#fff;">` : '';
+  rxMedicationRows = Array.isArray(x.items) && x.items.length
+    ? x.items.map(i=>({name:i.name||'',price:i.price!=null?i.price:''}))
+    : [{name:'',price:''}];
+  renderRxMedicationRows();
   openModal('rxPrice');
 }
 
 async function saveRxPricing(){
   if(!pricingOrderId) return;
-  const total=Number(document.getElementById('rxTotalPrice').value);
+  rxMedicationRows.forEach((_,i)=>updateRxMedicationRow(i));
+  const items = rxMedicationRows
+    .map(row=>({name:String(row.name||'').trim(),price:Number(row.price)}))
+    .filter(row=>row.name);
+  if(!items.length){toast('⚠️ أضف اسم دواء واحد على الأقل');return;}
+  if(items.some(row=>!Number.isFinite(row.price)||row.price<0)){toast('⚠️ اكتب سعر صحيح لكل دواء');return;}
+  const total=items.reduce((sum,row)=>sum+row.price,0);
   const delivery=Number(document.getElementById('rxDeliveryFee').value||0);
-  if(!Number.isFinite(total)||total<0){toast('⚠️ اكتب سعر الروشتة');return;}
+  if(!Number.isFinite(delivery)||delivery<0){toast('⚠️ اكتب رسوم توصيل صحيحة');return;}
+  const savedItems=items.map(row=>({name:row.name,price:row.price,qty:1,emoji:'💊',imageUrl:null}));
   try{
     await window._db.collection('orders').doc(pricingOrderId).update({
-      total, deliveryFee:delivery, grandTotal:total+delivery, pricingStatus:'confirmed', status:'confirmed', updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      items:savedItems,
+      total,
+      deliveryFee:delivery,
+      grandTotal:total+delivery,
+      pricingStatus:'confirmed',
+      status:'confirmed',
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     });
     closeModal('rxPrice');
-    toast('✅ تم حفظ السعر وتأكيد الطلب');
+    toast('✅ تم حفظ الأدوية والأسعار وتأكيد الطلب');
   }catch(e){toast('❌ '+e.message);}
 }
 
@@ -341,6 +428,7 @@ async function addProduct(){
 /* ─── CLEAR ORDERS ─── */
 let clearOpt='delivered';
 let pricingOrderId = null;
+document.getElementById('rxDeliveryFee')?.addEventListener('input', calcRxPricingTotals);
 function selClearOpt(opt){
   clearOpt=opt;
   ['delivered','cancelled','all'].forEach(o=>{

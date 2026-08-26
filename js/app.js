@@ -597,7 +597,7 @@ window.submitRxOrder = async () => {
     const res = await fetch('/api/sendPrescriptionToTelegram', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, address, imageBase64, mimeType, orderId: rxOrderCode })
+      body: JSON.stringify({ name, phone, address, imageBase64, mimeType, orderId: rxOrderCode, orderDocId: orderRef.id })
     });
     const result = await res.json();
     if (!res.ok || !result.success) {
