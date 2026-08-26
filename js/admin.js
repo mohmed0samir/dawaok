@@ -249,12 +249,11 @@ function renderOrders(){
   if(!o.length){tb.innerHTML='<tr class="empty-row"><td colspan="8">لا توجد طلبات</td></tr>';return;}
   tb.innerHTML=o.map(x=>{
     let itemsCell;
+    let prescriptionSrc='';
     if(x.type==='prescription'){
       const medsTxt=(x.items||[]).map(i=>i.name).join('، ')||'—';
-      const prescriptionSrc=prescriptionImageSrc(x);
-      itemsCell = prescriptionSrc
-        ? `<img class="rx-thumb" src="${prescriptionSrc}" onclick="viewRx('${prescriptionSrc}')" title="اضغط لعرض الروشتة كاملة"><br><small style="color:var(--muted)">${medsTxt}</small>`
-        : medsTxt;
+      prescriptionSrc=prescriptionImageSrc(x);
+      itemsCell = medsTxt;
     } else {
       itemsCell = (x.items||[]).map(i=>`${i.name}×${i.qty}`).join('، ');
     }
@@ -267,6 +266,7 @@ function renderOrders(){
       <td style="color:var(--gold);font-weight:800">${x.type==='prescription'?(x.grandTotal!=null?(x.grandTotal)+' ج':x.total!=null?(x.total)+' ج':'يحدد لاحقاً'):(x.total||0)+' ج'}</td>
       <td>${chip(x.status)}</td>
       <td>
+        ${x.type==='prescription' ? (prescriptionSrc ? `<button class="abtn inv" onclick="viewRx('${prescriptionSrc}')">🧾 صورة الروشتة</button>` : '<small style="color:var(--muted)">صورة غير متاحة</small>') : ''}
         ${x.type==='prescription' && x.status!=='delivered' && x.status!=='cancelled'?`<button class="abtn ok" onclick="openRxPricing('${x.docId}')">💰 ${x.total!=null?'تعديل السعر':'تسعير'}</button>`:''}
         ${x.type!=='prescription' && x.status==='pending'?`<button class="abtn ok" onclick="updOrder('${x.docId}','confirmed')">✅ تأكيد</button>`:''}
         ${['confirmed','priced'].includes(x.status)?`<button class="abtn dlv" onclick="updOrder('${x.docId}','ready')">🚚 تجهيز للتوصيل</button>`:''}

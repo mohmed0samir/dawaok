@@ -167,7 +167,6 @@ function renderInvoice(data) {
           <div class="inv-footer-note">شكرًا لثقتك في دواوك 💚</div>
           <div class="inv-footer-note">هذه فاتورة إلكترونية معتمدة</div>
         </div>
-        <div style="font-size:36px;">🔲</div>
       </div>
     </div>`;
 }
