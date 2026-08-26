@@ -50,9 +50,11 @@ function orderInvoiceUrl(id) {
 }
 
 function statusLabel(s, order) {
-  if (s === 'delivered' && order?.deliveredBy) {
-    const courier = order.deliveredBy;
-    return `✅ تم الاستلام من المندوب ${courier.name || '—'} ورقمه ${courier.phone || '—'}`;
+  if (['picked_up', 'out_for_delivery', 'delivered'].includes(s)) {
+    const courier = order?.deliveredBy || order?.courier;
+    if (courier) {
+      return `✅ تم الاستلام من المندوب ${courier.name || '—'} ورقمه ${courier.phone || '—'}`;
+    }
   }
   return ({pending:'🟡 طلب جديد / قيد المراجعة', priced:'🟢 تم التسعير', ready:'🔵 جاهز للتوصيل', assigned:'🟣 تم تعيين مندوب', picked_up:'📦 استلم المندوب الطلب', out_for_delivery:'🟠 جاري التوصيل', confirmed:'✅ مؤكد وجاهز للتوصيل', delivered:'✅ تم التسليم', cancelled:'❌ ملغي'})[s] || '—';
 }
