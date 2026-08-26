@@ -306,10 +306,10 @@ async function createCourier(){
   const password=document.getElementById('courierNewPassword').value;
   if(!name||!email||password.length<6){toast('⚠️ اكتب الاسم والبريد وكلمة مرور من 6 أحرف');return;}
   try{
-    const app=firebase.app();
-    const credential=await app.auth().createUserWithEmailAndPassword(email,password);
-    await app.firestore().collection('deliveryAgents').doc(credential.user.uid).set({name,phone,email,active:true,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-    await app.auth().signOut();
+    const courierApp=firebase.apps.find(app=>app.name==='courierCreation') || firebase.initializeApp(window.FIREBASE_CONFIG,'courierCreation');
+    const credential=await courierApp.auth().createUserWithEmailAndPassword(email,password);
+    await courierApp.firestore().collection('deliveryAgents').doc(credential.user.uid).set({name,phone,email,active:true,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    await courierApp.auth().signOut();
     ['courierNewName','courierNewPhone','courierNewEmail','courierNewPassword'].forEach(id=>document.getElementById(id).value='');
     toast('✅ تم إنشاء حساب المندوب وحفظه في Firebase');
   }catch(e){toast('❌ '+(e.code==='auth/email-already-in-use'?'البريد مستخدم بالفعل':e.message));}

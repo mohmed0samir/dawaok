@@ -1,9 +1,9 @@
 import { firebaseConfig } from './firebase-config.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc, getDoc, getDocs, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);
+const app=initializeApp(firebaseConfig,'deliveryPortal'), auth=getAuth(app), db=getFirestore(app);
 let unsubscribe=null, courier=null;
 const labels={assigned:'تم تعيينك',picked_up:'استلمت الطلب',out_for_delivery:'جاري التوصيل',delivered:'تم التسليم'};
 const toast=m=>{const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2500)};
@@ -11,7 +11,11 @@ const toast=m=>{const e=document.getElementById('toast');e.textContent=m;e.class
 window.startDelivery=async()=>{
   const email=document.getElementById('courierEmail').value.trim(), password=document.getElementById('courierPassword').value;
   if(!email||!password)return toast('اكتب البريد وكلمة المرور');
-  try{await signInWithEmailAndPassword(auth,email,password)}
+  try{
+    const courierSnap=await getDocs(query(collection(db,'deliveryAgents'),where('email','==',email),limit(1)));
+    if(courierSnap.empty)return toast('استخدم بريد حساب المندوب، وليس بريد حساب العميل');
+    await signInWithEmailAndPassword(auth,email,password)
+  }
   catch(e){toast(e.code==='auth/invalid-credential'?'بيانات الدخول غير صحيحة':'تعذر تسجيل الدخول')}
 };
 window.logoutDelivery=async()=>{unsubscribe?.();await signOut(auth);location.reload()};
@@ -20,7 +24,7 @@ onAuthStateChanged(auth,async user=>{
   if(!user)return;
   try{
     const snap=await getDoc(doc(db,'deliveryAgents',user.uid));
-    if(!snap.exists()||snap.data().active===false){await signOut(auth);return toast('هذا الحساب ليس حساب مندوب نشط')}
+    if(!snap.exists()||snap.data().active===false){await signOut(auth);return toast('هذا البريد تابع للعميل وليس لحساب مندوب نشط')}
     courier={uid:user.uid,...snap.data()}; load();
   }catch(e){toast('تعذر تحميل بيانات المندوب')}
 });
