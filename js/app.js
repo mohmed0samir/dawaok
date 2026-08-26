@@ -591,28 +591,18 @@ window.submitRxOrder = async () => {
     });
     rememberOrderId(orderRef.id);
 
-    // Keep Telegram notification as the pharmacist alert.
-    const res = await fetch(
-      'https://us-central1-pharmacy-b198d.cloudfunctions.net/sendPrescriptionToTelegram',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, address, imageBase64, mimeType, orderId: rxOrderCode })
-      }
-    );
+    // Send the prescription image through Vercel only.
+    // Telegram credentials stay in Vercel Environment Variables and are never
+    // exposed to the browser. The prescription image is NOT uploaded to Firebase Storage.
+    const res = await fetch('/api/sendPrescriptionToTelegram', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, address, imageBase64, mimeType, orderId: rxOrderCode })
+    });
     const result = await res.json();
     if (!res.ok || !result.success) {
-      console.warn('Prescription function failed:', result);
-      throw new Error(result?.error || 'prescription_function_failed');
-    }
-
-    // Cloud Function uploads the image server-side, so the browser never
-    // talks directly to Firebase Storage (this avoids Storage CORS errors).
-    if (result.prescriptionImageUrl) {
-      await updateDoc(orderRef, {
-        prescriptionImageUrl: result.prescriptionImageUrl,
-        updatedAt: serverTimestamp()
-      });
+      console.warn('Vercel Telegram API failed:', result);
+      throw new Error(result?.error || 'telegram_send_failed');
     }
 
     closeRx();
