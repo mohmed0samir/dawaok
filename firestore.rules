@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    function isActiveCourier() {
+      return signedIn() && get(/databases/$(database)/documents/deliveryAgents/$(request.auth.uid)).data.active == true;
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (isActiveCourier()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'withdrawn', 'lastInventoryOrderId', 'updatedAt'])
+          && request.resource.data.lastInventoryOrderId is string
+          && get(/databases/$(database)/documents/orders/$(request.resource.data.lastInventoryOrderId)).data.inventoryDeducted == false
+          && getAfter(/databases/$(database)/documents/orders/$(request.resource.data.lastInventoryOrderId)).data.inventoryDeducted == true
+          && getAfter(/databases/$(database)/documents/orders/$(request.resource.data.lastInventoryOrderId)).data.deliveredBy.uid == request.auth.uid
+          && getAfter(/databases/$(database)/documents/orders/$(request.resource.data.lastInventoryOrderId)).data.inventoryByProduct[productId].qty > 0
+          && request.resource.data.stock == resource.data.stock - getAfter(/databases/$(database)/documents/orders/$(request.resource.data.lastInventoryOrderId)).data.inventoryByProduct[productId].qty
+          && request.resource.data.withdrawn == resource.data.get('withdrawn', 0) + getAfter(/databases/$(database)/documents/orders/$(request.resource.data.lastInventoryOrderId)).data.inventoryByProduct[productId].qty);
+    }
+
+    match /settings/{docId} { allow read, write: if isAdmin(); }
+
+    match /orders/{orderId} {
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid)
+        || (isActiveCourier() && (resource.data.courier.uid == request.auth.uid || request.auth.uid in resource.data.courierOffers));
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.userId == null && request.resource.data.userId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['userId']))
+        || (isActiveCourier()
+          && !('courier' in resource.data)
+          && request.resource.data.courier.uid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['courier', 'courierOffers', 'status', 'updatedAt']))
+        || (isActiveCourier()
+          && resource.data.courier.uid == request.auth.uid
+          && request.resource.data.courier.uid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'paymentCollected', 'deliveredBy', 'deliveredAt', 'inventoryDeducted', 'inventoryByProduct']));
+      allow delete: if isAdmin();
+    }
+
+    match /deliveryAgents/{agentId} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == agentId);
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow create: if signedIn() && request.auth.uid == userId && !('role' in request.resource.data);
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == userId);
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == userId && request.resource.data.role == resource.data.role);
+      allow delete: if signedIn() && request.auth.uid == userId;
+      match /addresses/{addressId} {
+        allow read, write: if signedIn() && request.auth.uid == userId;
+      }
+    }
+  }
+}
