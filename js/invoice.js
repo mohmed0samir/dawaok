@@ -88,8 +88,8 @@ function renderInvoice(data) {
       ${prescriptionSrc ? `<img src="${prescriptionSrc}" alt="الروشتة الأصلية"><a class="rx-open-link" href="${prescriptionSrc}" target="_blank" rel="noopener">فتح الصورة</a>` : '<div class="rx-note">صورة الروشتة غير متاحة لهذا الطلب</div>'}
     </section>` : '';
 
-  const progressStates = ['pending','priced','ready','assigned','picked_up','out_for_delivery','delivered'];
-  const progressLabels = ['طلب جديد','مراجعة','تسعير','تجهيز','استلام المندوب','توصيل','تم التسليم'];
+  const progressStates = ['pending','priced','ready','assigned','picked_up','out_for_delivery'];
+  const progressLabels = ['مراجعة','تسعير','تجهيز','استلام المندوب','توصيل','تم التسليم'];
   const progressIndex = Math.max(0, progressStates.indexOf(data.status || 'pending'));
   const progressHTML = `<section class="medical-progress"><div class="section-heading">📋 مسار الطلب</div><div class="progress-track">${progressLabels.map((label,index)=>`<div class="progress-step ${index <= progressIndex ? 'active' : ''} ${index === progressIndex ? 'current' : ''}"><span>${index < progressIndex ? '✓' : index + 1}</span><b>${label}</b></div>`).join('')}</div></section>`;
 
