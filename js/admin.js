@@ -4,6 +4,8 @@ let pendingAdminOrderHandled = false;
 if(!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
 const adminApp=firebase.apps.find(app=>app.name==='adminPortal') || firebase.initializeApp(window.FIREBASE_CONFIG,'adminPortal');
 const adminAuth=firebase.auth(adminApp);
+const adminDb=firebase.firestore(adminApp);
+let adminInitialized=false;
 async function sha256(t){
   const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
   return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -19,7 +21,7 @@ async function doLogin(){
   try{
     await adminAuth.signInWithEmailAndPassword(email,v);
     const user=adminAuth.currentUser;
-    const profile=await firebase.firestore().collection('users').doc(user.uid).get();
+    const profile=await adminDb.collection('users').doc(user.uid).get();
     if(!profile.exists || profile.data().role!=='admin'){
       await adminAuth.signOut();
       throw new Error('هذا الحساب ليس حساب أدمن');
@@ -29,7 +31,7 @@ async function doLogin(){
       document.getElementById('app').style.display='flex';
       document.getElementById('loginErr').style.display='none';
       document.getElementById('loginPass').value='';
-      initApp();
+      showAdminApp();
     }
   } catch(e){
     document.getElementById('loginErr').style.display='block';
@@ -39,8 +41,27 @@ async function doLogin(){
   btn.disabled=false;
 }
 
+function showAdminApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  if(!adminInitialized){
+    adminInitialized=true;
+    initApp();
+  }
+}
+
+adminAuth.onAuthStateChanged(async user=>{
+  if(!user || adminInitialized) return;
+  try{
+    const profile=await adminDb.collection('users').doc(user.uid).get();
+    if(profile.exists && profile.data().role==='admin') showAdminApp();
+    else await adminAuth.signOut();
+  }catch(e){ await adminAuth.signOut(); }
+});
+
 function doLogout(){
   adminAuth.signOut();
+  adminInitialized=false;
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('app').style.display='none';
   document.getElementById('loginErr').style.display='none';
@@ -166,7 +187,7 @@ function clearImg(){
 
 /* ─── APP INIT (Firebase) ─── */
 function initApp(){
-  const db=firebase.firestore();
+  const db=adminDb;
   window._db=db;
 
   db.collection('orders').orderBy('createdAt','desc').onSnapshot(snap=>{
