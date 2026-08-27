@@ -1,6 +1,9 @@
 /* ─── ADMIN AUTH ─── */
 let pendingAdminOrderId = new URLSearchParams(window.location.search).get('order') || null;
 let pendingAdminOrderHandled = false;
+if(!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
+const adminApp=firebase.apps.find(app=>app.name==='adminPortal') || firebase.initializeApp(window.FIREBASE_CONFIG,'adminPortal');
+const adminAuth=firebase.auth(adminApp);
 async function sha256(t){
   const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
   return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -14,14 +17,11 @@ async function doLogin(){
   btn.textContent='⏳ جاري التحقق...';
   btn.disabled=true;
   try{
-    if(!firebase.apps.length){
-      firebase.initializeApp(window.FIREBASE_CONFIG);
-    }
-    await firebase.auth().signInWithEmailAndPassword(email,v);
-    const user= firebase.auth().currentUser;
+    await adminAuth.signInWithEmailAndPassword(email,v);
+    const user=adminAuth.currentUser;
     const profile=await firebase.firestore().collection('users').doc(user.uid).get();
     if(!profile.exists || profile.data().role!=='admin'){
-      await firebase.auth().signOut();
+      await adminAuth.signOut();
       throw new Error('هذا الحساب ليس حساب أدمن');
     }
     if(user){
@@ -40,7 +40,7 @@ async function doLogin(){
 }
 
 function doLogout(){
-  firebase.auth().signOut();
+  adminAuth.signOut();
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('app').style.display='none';
   document.getElementById('loginErr').style.display='none';
@@ -55,7 +55,7 @@ async function doChangePass(){
   if(n.length<6){toast('⚠️ 6 أحرف على الأقل');return;}
   if(n!==cf){toast('⚠️ مش متطابقة');return;}
   try{
-    const user=firebase.auth().currentUser;
+    const user=adminAuth.currentUser;
     const credential=firebase.auth.EmailAuthProvider.credential(user.email,o);
     await user.reauthenticateWithCredential(credential);
     await user.updatePassword(n);
@@ -336,7 +336,7 @@ function renderCouriers(){
 async function resetCourierPassword(uid,name){
   if(!confirm(`توليد كلمة مرور جديدة للمندوب ${name}؟`)) return;
   try{
-    const adminUser=firebase.auth().currentUser;
+    const adminUser=adminAuth.currentUser;
     if(!adminUser) throw new Error('admin_session_expired');
     const idToken=await adminUser.getIdToken();
     const response=await fetch('/api/resetCourierPassword',{
@@ -365,7 +365,7 @@ async function deleteCourier(uid,name){
   const email=courier?.email||'بدون بريد';
   if(!confirm(`⚠️ تنبيه: سيتم حذف حساب المندوب نهائيًا\n\nالاسم: ${name}\nالبريد: ${email}\n\nهل أنت متأكد من المتابعة؟`)) return;
   try{
-    const adminUser=firebase.auth().currentUser;
+    const adminUser=adminAuth.currentUser;
     if(!adminUser) throw new Error('admin_session_expired');
     const idToken=await adminUser.getIdToken();
     const response=await fetch('/api/deleteCourier',{
@@ -413,7 +413,7 @@ async function createCourier(){
   }
   let createdCourierUser=null;
   try{
-    const adminUser=firebase.auth().currentUser;
+    const adminUser=adminAuth.currentUser;
     if(!adminUser) throw new Error('جلسة الأدمن منتهية، سجل الدخول مرة أخرى');
     const adminProfile=await window._db.collection('users').doc(adminUser.uid).get();
     if(!adminProfile.exists || adminProfile.data().role!=='admin') throw new Error('حساب الأدمن لا يملك صلاحية الإدارة');

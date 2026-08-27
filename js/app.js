@@ -428,6 +428,13 @@ onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   document.getElementById('accountBtn').textContent = user ? '👤' : '👤';
   if (user) {
+    try {
+      const accountSnap = await getDoc(doc(db, 'users', user.uid));
+      if (accountSnap.exists() && accountSnap.data().role === 'admin') {
+        await signOut(auth);
+        return;
+      }
+    } catch (e) { console.error('تعذر التحقق من نوع الحساب:', e); }
     document.getElementById('authView').style.display = 'none';
     document.getElementById('profileView').style.display = 'flex';
     let profile = { name: user.displayName || 'مستخدم', email: user.email };
