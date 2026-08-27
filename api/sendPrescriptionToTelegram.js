@@ -1,16 +1,3 @@
-import { cert, getApps, initializeApp } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
-
-function getAdminApp() {
-  if (getApps().length) return getApps()[0];
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '{}');
-  if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
-    throw new Error('firebase_service_account_missing');
-  }
-  return initializeApp({ credential: cert(serviceAccount) });
-}
-
 export default async function handler(req, res) {
   const allowedOrigin = 'https://dawaok.vercel.app';
   res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
@@ -26,13 +13,6 @@ export default async function handler(req, res) {
     if (!name || !phone || !address || !imageBase64 || !orderId || !orderDocId) {
       return res.status(400).json({ error: 'missing_data' });
     }
-    const authorization = String(req.headers.authorization || '');
-    if (!authorization.startsWith('Bearer ')) return res.status(401).json({ error: 'unauthorized' });
-    const adminApp = getAdminApp();
-    const verifiedUser = await getAuth(adminApp).verifyIdToken(authorization.slice(7));
-    const orderRef = getFirestore(adminApp).collection('orders').doc(orderDocId);
-    const orderSnap = await orderRef.get();
-    if (!orderSnap.exists || orderSnap.data().userId !== verifiedUser.uid) return res.status(403).json({ error: 'order_access_denied' });
 
     const token = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -123,7 +103,6 @@ export default async function handler(req, res) {
       console.error('Telegram response did not contain a photo file_id:', result);
       return res.status(502).json({ error: 'telegram_file_id_missing' });
     }
-    await orderRef.update({ prescriptionTelegramFileId: telegramPhoto.file_id });
     return res.status(200).json({
       success: true,
       prescriptionTelegramFileId: telegramPhoto.file_id

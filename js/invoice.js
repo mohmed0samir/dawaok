@@ -1,9 +1,11 @@
 import { firebaseConfig } from './firebase-config.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
+const auth = getAuth(app);
 
 const el = document.getElementById('mainContent');
 
@@ -13,15 +15,20 @@ const orderId = params.get('order');
 if (!orderId) {
   showNotFound();
 } else {
-  loadOrder(orderId);
+  const stopAuthListener = onAuthStateChanged(auth, () => {
+    stopAuthListener();
+    loadOrder(orderId);
+  });
 }
 
 async function loadOrder(id) {
   try {
-    const snap = await getDoc(doc(db, 'orders', id));
-    if (!snap.exists()) { showNotFound(); return; }
-    const data = { docId: snap.id, ...snap.data() };
-    renderInvoice(data);
+    onSnapshot(doc(db, 'orders', id), snap => {
+      if (!snap.exists()) { showNotFound(); return; }
+      renderInvoice({ docId: snap.id, ...snap.data() });
+    }, e => {
+      el.innerHTML = `<div class="center-state"><div class="em">❌</div><p>حصل خطأ: ${e.message}</p></div>`;
+    });
   } catch (e) {
     el.innerHTML = `<div class="center-state"><div class="em">❌</div><p>حصل خطأ: ${e.message}</p></div>`;
   }
@@ -88,7 +95,7 @@ function renderInvoice(data) {
       ${prescriptionSrc ? `<img src="${prescriptionSrc}" alt="الروشتة الأصلية"><a class="rx-open-link" href="${prescriptionSrc}" target="_blank" rel="noopener">فتح الصورة</a>` : '<div class="rx-note">صورة الروشتة غير متاحة لهذا الطلب</div>'}
     </section>` : '';
 
- const progressStates = ['pending','confirmed','priced','ready','assigned','picked_up','out_for_delivery','delivered'];
+  const progressStates = ['pending','confirmed','priced','ready','assigned','picked_up','out_for_delivery','delivered'];
   const progressLabels = ['طلب جديد','تأكيد','تسعير','تجهيز','تعيين المندوب','استلام المندوب','توصيل','تم التسليم'];
   const progressIndex = Math.max(0, progressStates.indexOf(data.status || 'pending'));
   const progressHTML = `<section class="medical-progress"><div class="section-heading">📋 مسار الطلب</div><div class="progress-track">${progressLabels.map((label,index)=>`<div class="progress-step ${index <= progressIndex ? 'active' : ''} ${index === progressIndex ? 'current' : ''}"><span>${index < progressIndex ? '✓' : index + 1}</span><b>${label}</b></div>`).join('')}</div></section>`;

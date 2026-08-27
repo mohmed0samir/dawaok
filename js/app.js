@@ -333,12 +333,23 @@ window.placeOrder = async () => {
     rememberOrderId(ref.id);
     closeCart();
     toast('🎉 تم إرسال طلبك بنجاح!');
+    notifyAdminOfNewOrder(ref.id);
 
   } catch(e) {
     console.error(e);
     toast('❌ حصل خطأ، حاول تاني');
   }
 };
+
+async function notifyAdminOfNewOrder(orderDocId) {
+  try {
+    await fetch('/api/notifyNewOrder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await currentUser.getIdToken()}` },
+      body: JSON.stringify({ orderDocId })
+    });
+  } catch (e) { console.warn('تعذر إرسال إشعار الطلب للأدمن:', e); }
+}
 
 // ══════════════════════════════════════════════
 // AUTH — customer login / register / logout
@@ -716,6 +727,7 @@ window.submitRxOrder = async () => {
       throw new Error(result?.error || 'telegram_send_failed');
     }
     if (!result.prescriptionTelegramFileId) throw new Error('telegram_file_id_missing');
+    await updateDoc(orderRef, { prescriptionTelegramFileId: result.prescriptionTelegramFileId });
 
     closeRx();
     clearRx();

@@ -1,6 +1,7 @@
 /* ─── ADMIN AUTH ─── */
 let pendingAdminOrderId = new URLSearchParams(window.location.search).get('order') || null;
 let pendingAdminOrderHandled = false;
+let knownAdminOrderIds=null;
 if(!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
 const adminApp=firebase.apps.find(app=>app.name==='adminPortal') || firebase.initializeApp(window.FIREBASE_CONFIG,'adminPortal');
 const adminAuth=firebase.auth(adminApp);
@@ -31,7 +32,16 @@ async function doLogin(){
       document.getElementById('app').style.display='flex';
       document.getElementById('loginErr').style.display='none';
       document.getElementById('loginPass').value='';
+      requestBrowserNotifications();
       showAdminApp();
+
+    function requestBrowserNotifications(){
+      if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
+    }
+
+    function notifyBrowser(title,body){
+      if('Notification' in window && Notification.permission==='granted') new Notification(title,{body,icon:'./favicon.ico'});
+    }
     }
   } catch(e){
     document.getElementById('loginErr').style.display='block';
@@ -190,8 +200,12 @@ function initApp(){
   const db=adminDb;
   window._db=db;
 
-  db.collection('orders').orderBy('createdAt','desc').onSnapshot(snap=>{
+  db.collection('orders').onSnapshot(snap=>{
     window._orders=snap.docs.map(d=>({docId:d.id,...d.data()}));
+    window._orders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const newOrders=knownAdminOrderIds===null ? [] : window._orders.filter(order=>!knownAdminOrderIds.has(order.docId));
+    newOrders.forEach(order=>notifyBrowser('طلب جديد في دواوك',`${order.orderId||order.docId} — ${order.customer?.name||'عميل'}`));
+    knownAdminOrderIds=new Set(window._orders.map(order=>order.docId));
     updateStats();
     renderDashOrders();
     renderOrders();

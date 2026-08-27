@@ -16,7 +16,7 @@ service cloud.firestore {
         || (isActiveCourier()
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'withdrawn', 'lastInventoryOrderId', 'updatedAt'])
           && request.resource.data.lastInventoryOrderId is string
-          && get(/databases/$(database)/documents/orders/$(request.resource.data.lastInventoryOrderId)).data.inventoryDeducted == false
+          && resource.data.get('lastInventoryOrderId', '') != request.resource.data.lastInventoryOrderId
           && getAfter(/databases/$(database)/documents/orders/$(request.resource.data.lastInventoryOrderId)).data.inventoryDeducted == true
           && getAfter(/databases/$(database)/documents/orders/$(request.resource.data.lastInventoryOrderId)).data.deliveredBy.uid == request.auth.uid
           && getAfter(/databases/$(database)/documents/orders/$(request.resource.data.lastInventoryOrderId)).data.inventoryByProduct[productId].qty > 0
@@ -32,10 +32,12 @@ service cloud.firestore {
         || (signedIn() && resource.data.userId == request.auth.uid)
         || (isActiveCourier() && (resource.data.courier.uid == request.auth.uid || request.auth.uid in resource.data.courierOffers));
       allow update: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['prescriptionTelegramFileId']))
         || (signedIn() && resource.data.userId == null && request.resource.data.userId == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['userId']))
         || (isActiveCourier()
-          && !('courier' in resource.data)
+          && resource.data.courier == null
           && request.resource.data.courier.uid == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['courier', 'courierOffers', 'status', 'updatedAt']))
         || (isActiveCourier()

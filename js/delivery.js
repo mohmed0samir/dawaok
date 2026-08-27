@@ -7,6 +7,7 @@ const app=initializeApp(firebaseConfig,'deliveryPortal'), auth=getAuth(app), db=
 const authPersistenceReady=setPersistence(auth,browserLocalPersistence).catch(e=>console.error('تعذر حفظ جلسة المندوب:',e));
 let unsubscribe=null, courier=null;
 let assignedOrders=[], offeredOrders=[];
+let knownOfferedOrderIds=null;
 const labels={assigned:'تم تعيينك',picked_up:'استلمت الطلب',out_for_delivery:'جاري التوصيل',delivered:'تم التسليم'};
 const toast=m=>{const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2500)};
 
@@ -15,6 +16,7 @@ window.startDelivery=async()=>{
   if(!email||!password)return toast('اكتب البريد وكلمة المرور');
   try{
     await authPersistenceReady;
+    if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
     await signInWithEmailAndPassword(auth,email,password)
   }
   catch(e){toast(e.code==='auth/invalid-credential'?'بيانات الدخول غير صحيحة':'تعذر تسجيل الدخول')}
@@ -37,7 +39,16 @@ function load(){
   const offeredQuery=query(collection(db,'orders'),where('courierOffers','array-contains',courier.uid));
   const renderOrders=()=>render([...assignedOrders,...offeredOrders.filter(offer=>!assignedOrders.some(order=>order.id===offer.id))]);
   const unsubscribeAssigned=onSnapshot(assignedQuery,s=>{assignedOrders=s.docs.map(d=>({id:d.id,...d.data()}));renderOrders()},()=>toast('تعذر تحميل الطلبات'));
-  const unsubscribeOffered=onSnapshot(offeredQuery,s=>{offeredOrders=s.docs.map(d=>({id:d.id,...d.data()}));renderOrders()},()=>toast('تعذر تحميل عروض الطلبات'));
+  const unsubscribeOffered=onSnapshot(offeredQuery,s=>{
+    offeredOrders=s.docs.map(d=>({id:d.id,...d.data()}));
+    const newOffers=knownOfferedOrderIds===null ? [] : offeredOrders.filter(order=>!knownOfferedOrderIds.has(order.id));
+    newOffers.forEach(order=>{
+      toast(`📦 طلب جديد متاح: ${order.orderId||order.id.slice(0,8)}`);
+      if('Notification' in window && Notification.permission==='granted') new Notification('طلب توصيل جديد', {body:`${order.orderId||order.id.slice(0,8)} — ${order.customer?.name||'عميل'}`});
+    });
+    knownOfferedOrderIds=new Set(offeredOrders.map(order=>order.id));
+    renderOrders();
+  },()=>toast('تعذر تحميل عروض الطلبات'));
   unsubscribe=()=>{unsubscribeAssigned();unsubscribeOffered();};
 }
 function render(data){
@@ -100,5 +111,8 @@ window.moveOrder=async(id,status)=>{
       transaction.update(orderRef,updates);
     });
     toast(status==='delivered'?'تم تسجيل التسليم باسمك ورقمك':'تم تحديث حالة الطلب');
-  }catch(e){toast(e.message==='out_of_stock'?'الكمية غير متاحة في المخزون':e.message==='medicine_not_registered'?'يوجد دواء في الروشتة غير مسجل في المنتجات':'تعذر تحديث الطلب')}
+  }catch(e){
+    console.error('moveOrder failed:',e);
+    toast(e.message==='out_of_stock'?'الكمية غير متاحة في المخزون':e.message==='medicine_not_registered'?'يوجد دواء في الروشتة غير مسجل في المنتجات':e.code==='permission-denied'?'لا توجد صلاحية لتحديث الطلب':'تعذر تحديث الطلب');
+  }
 };
