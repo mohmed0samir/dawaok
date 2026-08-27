@@ -330,7 +330,24 @@ function renderCouriers(){
   if(!el) return;
   const list=window._couriers||[];
   if(!list.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">لا يوجد مندوبون بعد</div>';return;}
-  el.innerHTML=list.map(c=>`<div class="prod-row"><div class="prod-thumb">🚚</div><div class="prod-info"><div class="prod-name">${c.name||'مندوب'}</div><div class="prod-meta">${c.phone||'—'} · ${c.email||''}</div></div><span class="stk ok">نشط</span><button class="del-btn" onclick="deleteCourier('${c.uid}','${String(c.name||'مندوب').replace(/'/g,'')}')">🗑 حذف</button></div>`).join('');
+  el.innerHTML=list.map(c=>`<div class="prod-row"><div class="prod-thumb">🚚</div><div class="prod-info"><div class="prod-name">${c.name||'مندوب'}</div><div class="prod-meta">${c.phone||'—'} · ${c.email||''}</div></div><span class="stk ok">نشط</span><button class="btn-sm" onclick="resetCourierPassword('${c.uid}','${String(c.name||'مندوب').replace(/'/g,'')}')">🔑 كلمة جديدة</button><button class="del-btn" onclick="deleteCourier('${c.uid}','${String(c.name||'مندوب').replace(/'/g,'')}')">🗑 حذف</button></div>`).join('');
+}
+
+async function resetCourierPassword(uid,name){
+  if(!confirm(`توليد كلمة مرور جديدة للمندوب ${name}؟`)) return;
+  try{
+    const adminUser=firebase.auth().currentUser;
+    if(!adminUser) throw new Error('admin_session_expired');
+    const idToken=await adminUser.getIdToken();
+    const response=await fetch('/api/resetCourierPassword',{
+      method:'POST',
+      headers:{'Content-Type':'application/json',Authorization:`Bearer ${idToken}`},
+      body:JSON.stringify({uid})
+    });
+    const result=await response.json();
+    if(!response.ok) throw new Error(result.error||'reset_failed');
+    alert(`بيانات الدخول الجديدة للمندوب ${name}:\n\nكلمة المرور: ${result.password}\n\nاكتبها أو انسخها وأرسلها للمندوب.`);
+  }catch(e){alert(e.message==='admin_session_expired'?'جلسة الأدمن منتهية':'تعذر تغيير كلمة المرور');}
 }
 
 async function deleteCourier(uid,name){
