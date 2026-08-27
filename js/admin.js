@@ -346,12 +346,24 @@ async function resetCourierPassword(uid,name){
     });
     const result=await response.json();
     if(!response.ok) throw new Error(result.error||'reset_failed');
-    alert(`بيانات الدخول الجديدة للمندوب ${name}:\n\nكلمة المرور: ${result.password}\n\nاكتبها أو انسخها وأرسلها للمندوب.`);
-  }catch(e){alert(e.message==='admin_session_expired'?'جلسة الأدمن منتهية':'تعذر تغيير كلمة المرور');}
+    document.getElementById('createdCourierEmail').value=(window._couriers||[]).find(c=>c.uid===uid)?.email||'';
+    document.getElementById('createdCourierPassword').value=result.password;
+    openModal('courierCredentials');
+  }catch(e){toast(e.message==='admin_session_expired'?'❌ جلسة الأدمن منتهية':'❌ تعذر تغيير كلمة المرور');}
+}
+
+async function copyCourierCredential(id){
+  const input=document.getElementById(id);
+  try{
+    await navigator.clipboard.writeText(input.value);
+    toast('✅ تم النسخ');
+  }catch(e){input.select();document.execCommand('copy');toast('✅ تم النسخ');}
 }
 
 async function deleteCourier(uid,name){
-  if(!confirm(`حذف حساب المندوب ${name}؟ لن يستطيع دخول بوابة التوصيل بعد ذلك.`)) return;
+  const courier=(window._couriers||[]).find(c=>c.uid===uid);
+  const email=courier?.email||'بدون بريد';
+  if(!confirm(`⚠️ تنبيه: سيتم حذف حساب المندوب نهائيًا\n\nالاسم: ${name}\nالبريد: ${email}\n\nهل أنت متأكد من المتابعة؟`)) return;
   try{
     const adminUser=firebase.auth().currentUser;
     if(!adminUser) throw new Error('admin_session_expired');
@@ -411,7 +423,9 @@ async function createCourier(){
     await window._db.collection('deliveryAgents').doc(credential.user.uid).set({name,phone,email,active:true,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
     await courierApp.auth().signOut();
     ['courierNewName','courierNewPhone','courierNewEmail'].forEach(id=>document.getElementById(id).value='');
-    toast(`✅ تم إنشاء الحساب. البريد: ${email} | كلمة المرور: ${generatedPassword}`);
+    document.getElementById('createdCourierEmail').value=email;
+    document.getElementById('createdCourierPassword').value=generatedPassword;
+    openModal('courierCredentials');
   }catch(e){
     if(createdCourierUser) await createdCourierUser.delete().catch(() => {});
     toast('❌ '+(e.code==='auth/email-already-in-use'?'البريد مستخدم بالفعل':e.message));

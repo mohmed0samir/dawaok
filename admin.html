@@ -289,6 +289,18 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modal-courierCredentials">
+  <div class="modal">
+    <div class="modal-title">✅ تم إنشاء بيانات المندوب</div>
+    <label class="modal-label">البريد الإلكتروني</label>
+    <div class="copy-field"><input class="modal-field" id="createdCourierEmail" readonly><button type="button" class="btn-sm" onclick="copyCourierCredential('createdCourierEmail')">نسخ</button></div>
+    <label class="modal-label">كلمة المرور</label>
+    <div class="copy-field"><input class="modal-field" id="createdCourierPassword" readonly><button type="button" class="btn-sm" onclick="copyCourierCredential('createdCourierPassword')">نسخ</button></div>
+    <p class="credential-note">احتفظ بالبيانات وأرسلها للمندوب. لن تظهر كلمة المرور مرة أخرى بعد إغلاق النافذة.</p>
+    <div class="modal-btns"><button class="mbtn-cancel" onclick="closeModal('courierCredentials')">إغلاق</button></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="js/firebase-config-compat.js"></script>
