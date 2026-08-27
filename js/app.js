@@ -707,7 +707,7 @@ window.submitRxOrder = async () => {
     // exposed to the browser. The prescription image is NOT uploaded to Firebase Storage.
     const res = await fetch('/api/sendPrescriptionToTelegram', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await currentUser.getIdToken()}` },
       body: JSON.stringify({ name, phone, address, location: selectedLocation.rx, imageBase64, mimeType, orderId: rxOrderCode, orderDocId: orderRef.id })
     });
     const result = await res.json();
@@ -716,7 +716,6 @@ window.submitRxOrder = async () => {
       throw new Error(result?.error || 'telegram_send_failed');
     }
     if (!result.prescriptionTelegramFileId) throw new Error('telegram_file_id_missing');
-    await updateDoc(orderRef, { prescriptionTelegramFileId: result.prescriptionTelegramFileId });
 
     closeRx();
     clearRx();
