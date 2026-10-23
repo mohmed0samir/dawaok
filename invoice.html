@@ -4,22 +4,69 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>فاتورة — Dawaok | دواوك</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@300;400;500;700;800;900&family=Noto+Sans+Arabic:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/invoice.css">
 </head>
 <body>
 <div class="screen-wrap">
   <div class="topbar">
-    <div class="logo">✚ Dawaok <span class="logo-dot">دواوك</span></div>
+    <div class="logo"><svg class="icon icon-md" href="#icon-cross"></svg> Dawaok <span style="color:var(--color-secondary)">دواوك</span></div>
     <div class="action-btns">
-      <button class="btn btn-ghost" onclick="location.href='./index.html'">🏪 الموقع</button>
-      <button class="btn btn-teal" onclick="window.print()">⬇️ تنزيل الفاتورة</button>
+      <button class="btn btn-ghost" onclick="location.href='./index.html'"><svg class="icon icon-sm" href="#icon-home"></svg> الموقع</button>
+      <button class="btn btn-teal" onclick="window.print()"><svg class="icon icon-sm" href="#icon-download"></svg> تنزيل الفاتورة</button>
     </div>
   </div>
   <div id="mainContent">
-    <div class="center-state"><div class="spin">⏳</div><br><br>جاري تحميل الفاتورة...</div>
+    <div class="center-state"><svg class="icon icon-md" href="#icon-spinner"></svg><br><br>جاري تحميل الفاتورة...</div>
   </div>
 </div>
+
+<!-- SVG ICONS -->
+<svg style="display:none;" width="0" height="0" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="icon-cross" viewBox="0 0 24 24">
+    <path d="M12 2L9 5L5 5L5 7L7 7L7 9L5 9L5 11L7 11L7 13L5 13L5 15L7 15L7 17L5 17L5 19L9 19L9 17L11 17L11 15L13 15L13 13L15 13L15 11L13 11L13 9L15 9L15 7L13 7L13 5L11 5L11 7L9 7L9 5L12 2Z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-home" viewBox="0 0 24 24">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-download" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.29-7.29 1.41 1.41L10 17l-2-2zm0-16c-2.66 0-5 2.34-5 5s2.34 5 5 5 5-2.34 5-5-2.34-5-5-5z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-spinner" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 16c-2.66 0-5-2.34-5-5s2.34-5 5-5 5 2.34 5 5-2.34 5-5 5z" fill="currentColor"/>
+    <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+  </symbol>
+  <symbol id="icon-close" viewBox="0 0 24 24">
+    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-receipt" viewBox="0 0 24 24">
+    <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12v-2H6V4h12v16h-2V4c0-1.1-.9-2-2-2z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-pill" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-user" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 10c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4zm8 4c0 3-2 5-4 5h-4c-2 0-4-2-4-5 0-2 1-4 3-4s3 2 3 4zm-4-8c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-phone" viewBox="0 0 24 24">
+    <path d="M6.62 10.79c1.44-2.83 3.76-5.14 6.59-6.59l2.2-.27c.27-.03.54-.05.82-.05 1.61 0 3.09.59 4.23 1.72l2.53 2.53c1.18 1.18 1.81 2.76 1.72 4.23 0 .27-.02.55-.05.82l-.27 2.2c-1.45 2.83-3.76 5.15-6.59 6.59l-2.2.27c-.27.03-.54.05-.82.05-1.61 0-3.09-.59-4.23-1.72l-2.53-2.53c-1.19-1.19-1.82-2.76-1.73-4.23 0-.27.02-.55.05-.82zM19 13H5c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2v7c0 1.1-.9 2-2 2z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-map-pin" viewBox="0 0 24 24">
+    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-money" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-check" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-7 10l5 5 7-7-1.41-1.41L10 14.17 6.59 10.76 5.17 12.17z" fill="currentColor"/>
+  </symbol>
+</svg>
+
+<style>
+.icon { width: 20px; height: 20px; fill: currentColor; vertical-align: middle; margin-left: 6px; flex-shrink: 0; }
+.icon-sm { width: 16px; height: 16px; }
+.icon-md { width: 24px; height: 24px; }
+</style>
 
 <script type="module" src="js/invoice.js"></script>
 </body>
