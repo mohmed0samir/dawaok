@@ -78,7 +78,7 @@ window.acceptOrder=async(id)=>{
 };
 window.moveOrder=async(id,status)=>{
   try{
-    const updates={status,updatedAt:serverTimestamp(),paymentCollected:status==='delivered'?true:false};
+    const updates={status,updatedAt:serverTimestamp(),...(status==='delivered'?{paymentCollected:true}:{})};
     if(status==='delivered'){
       updates.deliveredBy={uid:courier.uid,name:courier.name||'',phone:courier.phone||''};
       updates.deliveredAt=serverTimestamp();

@@ -1,0 +1,11 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // دواوك لا تستخدم Firebase Storage للصور.
+    // صور الروشتات تُرسل عبر Telegram API، وصور المنتجات تُحفظ كـ base64 في Firestore.
+    //禁止 كل القراءة والكتابة كإجراء أمان افتراضي.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

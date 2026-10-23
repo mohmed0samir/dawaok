@@ -12,6 +12,14 @@ async function sha256(t){
   return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
 }
 
+function requestBrowserNotifications(){
+  if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
+}
+
+function notifyBrowser(title,body){
+  if('Notification' in window && Notification.permission==='granted') new Notification(title,{body,icon:'./favicon.ico'});
+}
+
 async function doLogin(){
   const email=document.getElementById('loginEmail').value.trim();
   const v=document.getElementById('loginPass').value;
@@ -34,14 +42,6 @@ async function doLogin(){
       document.getElementById('loginPass').value='';
       requestBrowserNotifications();
       showAdminApp();
-
-    function requestBrowserNotifications(){
-      if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
-    }
-
-    function notifyBrowser(title,body){
-      if('Notification' in window && Notification.permission==='granted') new Notification(title,{body,icon:'./favicon.ico'});
-    }
     }
   } catch(e){
     document.getElementById('loginErr').style.display='block';
@@ -414,11 +414,6 @@ async function deleteCourier(uid,name){
   }catch(e){toast(e.message==='admin_session_expired'?'❌ جلسة الأدمن منتهية':'❌ تعذر حذف حساب المندوب');}
 }
 
-function courierEmailBase(name){
-  const arabicMap={ا:'a',أ:'a',إ:'i',آ:'a',ب:'b',ت:'t',ث:'th',ج:'g',ح:'h',خ:'kh',د:'d',ذ:'th',ر:'r',ز:'z',س:'s',ش:'sh',ص:'s',ض:'d',ط:'t',ظ:'z',ع:'a',غ:'gh',ف:'f',ق:'q',ك:'k',ل:'l',م:'m',ن:'n',ه:'h',و:'w',ي:'y',ى:'a',ة:'h',ء:'a',ؤ:'w',ئ:'y'};
-  const latin=String(name).toLowerCase().split('').map(char=>arabicMap[char]||char).join('');
-  return latin.replace(/[^a-z0-9]+/g,'').slice(0,30) || 'courier';
-}
 
 function previewCourierEmail(){
   const name=document.getElementById('courierNewName').value.trim();
@@ -472,14 +467,6 @@ function viewInv(docId){
 }
 
 let rxMedicationRows = [];
-
-function normalizeProductName(name){
-  return String(name).trim().toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/\s+/g,' ');
-}
-
-function productSellingPrice(product){
-  return product.discount ? Math.round(product.price * (1 - product.discount / 100)) : Number(product.price || 0);
-}
 
 function findRxProduct(name){
   const normalized=normalizeProductName(name);
@@ -640,6 +627,9 @@ async function addProduct(){
   const isNew=document.getElementById('pNew').value==='true';
 
   if(!name||!price||!stock){ toast('⚠️ اكتب الاسم والسعر والكمية'); return; }
+  if(price<0){ toast('⚠️ السعر يجب أن يكون عدداً موجباً'); return; }
+  if(stock<0){ toast('⚠️ الكمية يجب أن تكون عدداً موجباً أو صفراً'); return; }
+  if(discount<0||discount>90){ toast('⚠️ الخصم يجب أن يكون بين 0 و 90'); return; }
 
   toast('⏳ جاري الإضافة...');
   try{
