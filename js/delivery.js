@@ -9,7 +9,16 @@ let unsubscribe=null, courier=null;
 let assignedOrders=[], offeredOrders=[];
 let knownOfferedOrderIds=null;
 const labels={assigned:'تم تعيينك',picked_up:'استلمت الطلب',out_for_delivery:'جاري التوصيل',delivered:'تم التسليم'};
-const toast=m=>{const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2500)};
+
+const ICON_PACKAGE = '<svg class="icon icon-sm" href="#icon-box"></svg>';
+const ICON_TRUCK   = '<svg class="icon icon-sm" href="#icon-truck"></svg>';
+const ICON_CHECK   = '<svg class="icon icon-sm" href="#icon-check"></svg>';
+const ICON_PHONE   = '<svg class="icon icon-sm" href="#icon-phone"></svg>';
+const ICON_PIN     = '<svg class="icon icon-sm" href="#icon-map-pin"></svg>';
+const ICON_MAP     = '<svg class="icon icon-sm" href="#icon-map"></svg>';
+const ICON_RECEIPT = '<svg class="icon icon-sm" href="#icon-receipt"></svg>';
+
+const toast=m=>{const e=document.getElementById('toast');e.innerHTML=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2500)};
 
 window.startDelivery=async()=>{
   const email=document.getElementById('courierEmail').value.trim(), password=document.getElementById('courierPassword').value;
@@ -43,7 +52,7 @@ function load(){
     offeredOrders=s.docs.map(d=>({id:d.id,...d.data()}));
     const newOffers=knownOfferedOrderIds===null ? [] : offeredOrders.filter(order=>!knownOfferedOrderIds.has(order.id));
     newOffers.forEach(order=>{
-      toast(`📦 طلب جديد متاح: ${order.orderId||order.id.slice(0,8)}`);
+      toast(`${ICON_PACKAGE} طلب جديد متاح: ${order.orderId||order.id.slice(0,8)}`);
       if('Notification' in window && Notification.permission==='granted') new Notification('طلب توصيل جديد', {body:`${order.orderId||order.id.slice(0,8)} — ${order.customer?.name||'عميل'}`});
     });
     knownOfferedOrderIds=new Set(offeredOrders.map(order=>order.id));
@@ -60,8 +69,8 @@ function render(data){
     const loc=x.customer?.location;
     const map=loc?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.lat+','+loc.lng)}`:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.customer?.address||'')}`;
     const isOffer=!x.courier;
-    const next=x.status==='assigned'?['picked_up','📦 استلام الطلب']:x.status==='picked_up'?['out_for_delivery','🛵 بدء التوصيل']:x.status==='out_for_delivery'?['delivered','✅ تم التسليم']:null;
-    return `<article class="order"><div class="order-top"><div><h3>${x.customer?.name||'عميل'} <small>#${x.orderId||x.id.slice(0,8)}</small></h3><p>📱 ${x.customer?.phone||'—'}<br>📍 ${x.customer?.address||'—'}</p></div><span class="pill">${isOffer?'طلب متاح':labels[x.status]||x.status}</span></div><p>🧾 ${(x.items||[]).map(i=>`${i.name} ×${i.qty}`).join('، ')||'روشتة قيد المراجعة'}</p><div class="money">المطلوب تحصيله: ${x.grandTotal??x.total??'يحدد لاحقًا'} جنيه</div><div class="actions"><a class="map" target="_blank" rel="noopener" href="${map}">🗺️ فتح الموقع في Google Maps</a>${isOffer?`<button onclick="acceptOrder('${x.id}')">✅ قبول الطلب</button>`:next?`<button onclick="moveOrder('${x.id}','${next[0]}')">${next[1]}</button>`:''}</div></article>`;
+    const next=x.status==='assigned'?['picked_up',`${ICON_PACKAGE} استلام الطلب`]:x.status==='picked_up'?['out_for_delivery',`${ICON_TRUCK} بدء التوصيل`]:x.status==='out_for_delivery'?['delivered',`${ICON_CHECK} تم التسليم`]:null;
+    return `<article class="order"><div class="order-top"><div><h3>${x.customer?.name||'عميل'} <small>#${x.orderId||x.id.slice(0,8)}</small></h3><p>${ICON_PHONE} ${x.customer?.phone||'—'}<br>${ICON_PIN} ${x.customer?.address||'—'}</p></div><span class="pill">${isOffer?'طلب متاح':labels[x.status]||x.status}</span></div><p>${ICON_RECEIPT} ${(x.items||[]).map(i=>`${i.name} ×${i.qty}`).join('، ')||'روشتة قيد المراجعة'}</p><div class="money">المطلوب تحصيله: ${x.grandTotal??x.total??'يحدد لاحقًا'} جنيه</div><div class="actions"><a class="map" target="_blank" rel="noopener" href="${map}">${ICON_MAP} فتح الموقع في Google Maps</a>${isOffer?`<button onclick="acceptOrder('${x.id}')">${ICON_CHECK} قبول الطلب</button>`:next?`<button onclick="moveOrder('${x.id}','${next[0]}')">${next[1]}</button>`:''}</div></article>`;
   }).join('');
 }
 window.acceptOrder=async(id)=>{
@@ -73,12 +82,12 @@ window.acceptOrder=async(id)=>{
       if(!snap.exists() || order.courier || !(order.courierOffers||[]).includes(courier.uid)) throw new Error('already_taken');
       transaction.update(ref,{courier:{uid:courier.uid,name:courier.name||'',phone:courier.phone||''},courierOffers:[],status:'assigned',updatedAt:serverTimestamp()});
     });
-    toast('✅ تم قبول الطلب وأصبح معك');
+    toast(`${ICON_CHECK} تم قبول الطلب وأصبح معك`);
   }catch(e){toast(e.message==='already_taken'?'الطلب اتاخد من مندوب تاني':'تعذر قبول الطلب')}
 };
 window.moveOrder=async(id,status)=>{
   try{
-    const updates={status,updatedAt:serverTimestamp(),paymentCollected:status==='delivered'?true:false};
+    const updates={status,updatedAt:serverTimestamp(),...(status==='delivered'?{paymentCollected:true}:{})};
     if(status==='delivered'){
       updates.deliveredBy={uid:courier.uid,name:courier.name||'',phone:courier.phone||''};
       updates.deliveredAt=serverTimestamp();

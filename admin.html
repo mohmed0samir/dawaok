@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>لوحة الإدارة — Dawaok | دواوك</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700;800;900&family=Noto+Sans+Arabic:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <!-- ══ FIREBASE SDK (compat) ══ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -16,15 +16,122 @@
 </head>
 <body>
 
+<!-- ══ SVG ICONS ══ -->
+<svg style="display:none;" width="0" height="0" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="icon-cross" viewBox="0 0 24 24">
+    <path d="M12 2L9 5L5 5L5 7L7 7L7 9L5 9L5 11L7 11L7 13L5 13L5 15L7 15L7 17L5 17L5 19L9 19L9 17L11 17L11 15L13 15L13 13L15 13L15 11L13 11L13 9L15 9L15 7L13 7L13 5L11 5L11 7L9 7L9 5L12 2Z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-lock" viewBox="0 0 24 24">
+    <path d="M12 2L9 5L5 5L5 7L7 7L7 9L5 9L5 11L7 11L7 13L5 13L5 15L7 15L7 17L5 17L5 19L9 19L9 17L11 17L11 15L13 15L13 13L15 13L15 11L13 11L13 9L15 9L15 7L13 7L13 5L11 5L11 7L9 7L9 5L12 2Z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-cancel" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.9c-3.9 0-7-3.1-7-7s3.1-7 7-7 7 3.1 7 7-3.1 7-7 7z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-dashboard" viewBox="0 0 24 24">
+    <path d="M3 3h18v18H3V3zm16 16H5V5h14v14zM3 3h18v18H3V3zm16 16H5V5h14v14z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-box" viewBox="0 0 24 24">
+    <path d="M21 2H3c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-9 2h6v12h-6V4zm-2 6l-4-4-4 4h8z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-pill" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-plus" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-truck" viewBox="0 0 24 24">
+    <path d="M19 2H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM3 4h16v12H3V4zm17 12h-2v-2h2v2z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-home" viewBox="0 0 24 24">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-key" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-logout" viewBox="0 0 24 24">
+    <path d="M17 2v4h-7V2H7v15h3v-4h7v4h10V2h-3z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-menu" viewBox="0 0 24 24">
+    <path d="M3 18h18v-2H3v2zm0-5h18V11H3v2zm0-7v2h18V6H3z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-stats" viewBox="0 0 24 24">
+    <path d="M3 4v16h2V4h18v16h2V4H3z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-money" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-clock" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 16c-2.66 0-5-2.34-5-5s2.34-5 5-5 5 2.34 5 5-2.34 5-5 5zm0-12c-3.86 0-7 3.14-7 7s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-check" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM5 13.18L11.2 19l14-7.82-2.83-2.83L11 15.17l-2.17-2.17L5 13.18z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-trash" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm6 9h-4v2h-2v-2H8v2H6v-2H4v-4c0-1.1.9-2 2-2h12c1.1 0 2 .9 2 2v4zm-1-6h-2v-2h2V12z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-leaf" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 16c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-image" viewBox="0 0 24 24">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14V7l-6 4 6 4z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-close" viewBox="0 0 24 24">
+    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-spinner" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 16c-2.66 0-5-2.34-5-5s2.34-5 5-5 5 2.34 5 5-2.34 5-5 5z" fill="currentColor"/>
+    <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+  </symbol>
+  <symbol id="icon-tag" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 4l-4 4h-3l4-4v-3z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-face" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM12 4c-4.41 0-8 3.59-8 8s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-baby" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 12c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4zm2-4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-medical" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 16c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-muscle" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 16c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-receipt" viewBox="0 0 24 24">
+    <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12v-2H6V4h12v16h-2V4c0-1.1-.9-2-2-2z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-search" viewBox="0 0 24 24">
+    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-fullscreen" viewBox="0 0 24 24">
+    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v4zm12 7h-3v2h5v-5h-2v3zm2-11v3h-3V7h2V5z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-user" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 10c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4zm8 4c0 3-2 5-4 5h-4c-2 0-4-2-4-5 0-2 1-4 3-4s3 2 3 4zm-4-8c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-camera" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zM17 25h-1v-7c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v7c0 .6.4 1 1 1h1v-4h2v4h10v-4h2v4z" fill="currentColor"/>
+  </symbol>
+  <symbol id="icon-save" viewBox="0 0 24 24">
+    <path d="M17 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 16H7v-2h5v2zm0-4H7V7h10v4H6v10h6z" fill="currentColor"/>
+  </symbol>
+</svg>
+
+<style>
+.icon { width: 20px; height: 20px; fill: currentColor; vertical-align: middle; margin-left: 6px; flex-shrink: 0; }
+.icon-sm { width: 16px; height: 16px; }
+.icon-md { width: 24px; height: 24px; }
+</style>
+
 <!-- ══ LOGIN ══ -->
 <div id="loginScreen">
   <div class="login-box">
-    <div class="login-logo">✚ Dawaok<span style="color:var(--gold)"> | دواوك</span></div>
+    <div class="login-logo"><svg class="icon icon-md" href="#icon-cross"></svg> Dawaok<span style="color:var(--color-secondary)"> | دواوك</span></div>
     <div class="login-sub">لوحة إدارة الصيدلية</div>
     <input class="login-field" type="email" id="loginEmail" placeholder="بريد الأدمن" onkeydown="if(event.key==='Enter')doLogin()">
     <input class="login-field" type="password" id="loginPass" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="login-btn" onclick="doLogin()">🔐 دخول</button>
-    <div class="login-err" id="loginErr">❌ كلمة المرور غلط</div>
+    <button class="login-btn" onclick="doLogin()"><svg class="icon" href="#icon-lock"></svg> دخول</button>
+    <div class="login-err" id="loginErr"><svg class="icon icon-sm" href="#icon-cancel"></svg> كلمة المرور غلط</div>
   </div>
 </div>
 
@@ -34,27 +141,27 @@
   <div class="backdrop" id="backdrop" onclick="closeSidebar()"></div>
 
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">✚ Dawaok<span> | دواوك</span></div>
+    <div class="sidebar-logo"><svg class="icon icon-md" href="#icon-cross"></svg> Dawaok<span> | دواوك</span></div>
     <div class="nav-section">القائمة</div>
-    <div class="nav-item active" onclick="showPage('dashboard',this)">📊 لوحة التحكم</div>
-    <div class="nav-item" onclick="showPage('orders',this)">📦 الطلبات</div>
-    <div class="nav-item" onclick="showPage('products',this)">💊 المنتجات</div>
-    <div class="nav-item" onclick="showPage('addProduct',this)">➕ إضافة منتج</div>
-    <div class="nav-item" onclick="showPage('couriers',this)">🚚 المندوبون</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)"><svg class="icon" href="#icon-dashboard"></svg> لوحة التحكم</div>
+    <div class="nav-item" onclick="showPage('orders',this)"><svg class="icon" href="#icon-box"></svg> الطلبات</div>
+    <div class="nav-item" onclick="showPage('products',this)"><svg class="icon" href="#icon-pill"></svg> المنتجات</div>
+    <div class="nav-item" onclick="showPage('addProduct',this)"><svg class="icon icon-sm" href="#icon-plus"></svg> إضافة منتج</div>
+    <div class="nav-item" onclick="showPage('couriers',this)"><svg class="icon" href="#icon-truck"></svg> المندوبون</div>
     <div class="nav-section">روابط</div>
-    <div class="nav-item" onclick="window.open('https://dawaok.vercel.app/','_blank')">🏪 الموقع العام</div>
+    <div class="nav-item" onclick="window.open('https://dawaok.vercel.app/','_blank')"><svg class="icon" href="#icon-home"></svg> الموقع العام</div>
     <div class="sidebar-foot">
       <span class="online"></span> متصل بـ Firebase
-      <a class="teal" onclick="openModal('changePass')">🔑 تغيير كلمة المرور</a>
-      <a class="red" onclick="doLogout()">🚪 خروج</a>
+      <a onclick="openModal('changePass')"><svg class="icon icon-sm" href="#icon-key"></svg> تغيير كلمة المرور</a>
+      <a onclick="doLogout()"><svg class="icon icon-sm" href="#icon-logout"></svg> خروج</a>
     </div>
   </aside>
 
   <main class="main">
     <div class="topbar">
       <div style="display:flex;align-items:center;gap:12px;">
-        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-        <div class="topbar-title" id="topbarTitle">📊 لوحة التحكم</div>
+        <button class="menu-btn" onclick="toggleSidebar()"><svg class="icon icon-md" href="#icon-menu"></svg></button>
+        <div class="topbar-title" id="topbarTitle"><svg class="icon icon-sm" href="#icon-dashboard"></svg> لوحة التحكم</div>
       </div>
       <div class="topbar-right">
         <div class="live-badge"><span class="live-dot"></span> مباشر</div>
@@ -66,16 +173,16 @@
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
         <div class="stats-grid">
-          <div class="stat t"><div class="stat-label">إجمالي الطلبات</div><div class="stat-val" id="s1">0</div><div class="stat-icon">📦</div></div>
-          <div class="stat g"><div class="stat-label">إجمالي المبيعات</div><div class="stat-val" id="s2">0</div><div class="stat-icon">💰</div></div>
-          <div class="stat d"><div class="stat-label">طلبات معلقة</div><div class="stat-val" id="s3">0</div><div class="stat-icon">⏳</div></div>
-          <div class="stat s"><div class="stat-label">تم التوصيل</div><div class="stat-val" id="s4">0</div><div class="stat-icon">✅</div></div>
+          <div class="stat t"><div class="stat-label">إجمالي الطلبات</div><div class="stat-val" id="s1">0</div><svg class="icon stat-icon" href="#icon-box"></svg></div>
+          <div class="stat g"><div class="stat-label">إجمالي المبيعات</div><div class="stat-val" id="s2">0</div><svg class="icon stat-icon" href="#icon-money"></svg></div>
+          <div class="stat d"><div class="stat-label">طلبات معلقة</div><div class="stat-val" id="s3">0</div><svg class="icon stat-icon" href="#icon-clock"></svg></div>
+          <div class="stat s"><div class="stat-label">تم التوصيل</div><div class="stat-val" id="s4">0</div><svg class="icon stat-icon" href="#icon-check"></svg></div>
         </div>
         <div class="sec-hd">
           <div class="sec-title">آخر الطلبات</div>
           <div style="display:flex;gap:8px;">
-            <button class="btn-danger" onclick="openModal('clearOrders')">🗑 جرد الطلبات</button>
-            <button class="seed-btn" onclick="seedProducts()">🌱 رفع داتا أدوية</button>
+            <button class="btn-danger" onclick="openModal('clearOrders')"><svg class="icon icon-sm" href="#icon-trash"></svg> جرد الطلبات</button>
+            <button class="seed-btn" onclick="seedProducts()"><svg class="icon icon-sm" href="#icon-leaf"></svg> رفع داتا أدوية</button>
           </div>
         </div>
         <div class="tbl-wrap">
@@ -89,8 +196,8 @@
         <div class="sec-hd">
           <div class="sec-title">جميع الطلبات</div>
           <div style="display:flex;gap:8px;align-items:center;">
-            <button class="btn-danger" onclick="openModal('clearOrders')">🗑 جرد</button>
-            <select id="statusFilter" onchange="renderOrders()" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:12px;outline:none;">
+            <button class="btn-danger" onclick="openModal('clearOrders')"><svg class="icon icon-sm" href="#icon-trash"></svg> جرد</button>
+            <select id="statusFilter" onchange="renderOrders()">
               <option value="">كل الطلبات</option>
               <option value="pending">معلق</option>
               <option value="priced">تم التسعير</option>
@@ -114,9 +221,9 @@
       <div class="page" id="page-products">
         <div class="sec-hd">
           <div class="sec-title">المنتجات (<span id="prodCount">0</span>)</div>
-          <button class="btn-main" style="margin-top:0;padding:9px 18px;font-size:13px;" onclick="showPage('addProduct',document.querySelectorAll('.nav-item')[3])">+ إضافة</button>
+          <button class="btn-main" style="margin-top:0;padding:9px 18px;font-size:13px;" onclick="showPage('addProduct',document.querySelectorAll('.nav-item')[3])"><svg class="icon icon-sm" href="#icon-plus"></svg> إضافة</button>
         </div>
-        <div class="prod-list" id="prodList"><div style="text-align:center;padding:40px;color:var(--muted);">⏳ جاري التحميل...</div></div>
+        <div class="prod-list" id="prodList"><div style="text-align:center;padding:40px;color:var(--color-muted-foreground);"><svg class="icon icon-md" href="#icon-spinner"></svg> جاري التحميل...</div></div>
       </div>
 
       <!-- ADD PRODUCT -->
@@ -135,13 +242,13 @@
             <div class="fg">
               <label>الفئة *</label>
               <select id="pCat">
-                <option value="أدوية">💊 أدوية</option>
-                <option value="فيتامينات">🌿 فيتامينات</option>
-                <option value="عناية بالبشرة">🧴 عناية بالبشرة</option>
-                <option value="صحة الطفل">👶 صحة الطفل</option>
-                <option value="مستلزمات طبية">🩺 مستلزمات طبية</option>
-                <option value="تكميل عضلات">💪 تكميل عضلات</option>
-                <option value="عروض">🔖 عروض</option>
+                <option value="أدوية"><svg class="icon icon-sm" href="#icon-pill"></svg> أدوية</option>
+                <option value="فيتامينات"><svg class="icon icon-sm" href="#icon-leaf"></svg> فيتامينات</option>
+                <option value="عناية بالبشرة"><svg class="icon icon-sm" href="#icon-face"></svg> عناية بالبشرة</option>
+                <option value="صحة الطفل"><svg class="icon icon-sm" href="#icon-baby"></svg> صحة الطفل</option>
+                <option value="مستلزمات طبية"><svg class="icon icon-sm" href="#icon-medical"></svg> مستلزمات طبية</option>
+                <option value="تكميل عضلات"><svg class="icon icon-sm" href="#icon-muscle"></svg> تكميل عضلات</option>
+                <option value="عروض"><svg class="icon icon-sm" href="#icon-tag"></svg> عروض</option>
               </select>
             </div>
             <div class="fg">
@@ -159,35 +266,35 @@
             <div class="fg full">
               <label>صورة المنتج (اختياري)</label>
               <div class="img-drop" id="imgDrop" onclick="document.getElementById('imgInput').click()"
-                ondragover="event.preventDefault();this.style.borderColor='var(--teal)'"
+                ondragover="event.preventDefault();this.style.borderColor='var(--color-primary)'"
                 ondragleave="this.style.borderColor=''"
                 ondrop="event.preventDefault();this.style.borderColor='';handleFile(event.dataTransfer.files[0])">
                 <div id="imgPlaceholder">
-                  <div style="font-size:36px;margin-bottom:8px;">🖼️</div>
-                  <div style="font-size:13px;color:var(--muted);">اسحب صورة أو اضغط للرفع</div>
-                  <div style="font-size:11px;color:var(--muted);margin-top:4px;">PNG / JPG / WEBP</div>
+                  <svg class="icon icon-md" href="#icon-image"></svg>
+                  <div style="font-size:13px;color:var(--color-muted-foreground);">اسحب صورة أو اضغط للرفع</div>
+                  <div style="font-size:11px;color:var(--color-muted-foreground);margin-top:4px;">PNG / JPG / WEBP</div>
                 </div>
                 <div id="imgPreviewWrap" style="display:none;position:relative;">
-                  <button class="img-clear" onclick="event.stopPropagation();clearImg()">✕</button>
+                  <button class="img-clear" onclick="event.stopPropagation();clearImg()"><svg class="icon" href="#icon-close"></svg></button>
                   <img id="imgPreview" class="img-preview" src="">
                 </div>
               </div>
               <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleFile(this.files[0])">
             </div>
             <div class="fg full">
-              <label>أو اختار إيموجي بديل</label>
+              <label>أو اختيار أيقونة بديلة</label>
               <div class="emoji-row" id="emojiRow"></div>
             </div>
             <div class="fg">
-              <label>الإيموجي المختار</label>
-              <input type="text" id="pEmoji" placeholder="اضغط إيموجي فوق" readonly>
+              <label>الأيقونة المختارة</label>
+              <input type="text" id="pEmoji" placeholder="اضغط أيقونة فوق" readonly>
             </div>
             <div class="fg">
               <label>منتج جديد؟</label>
               <select id="pNew"><option value="false">لا</option><option value="true">نعم</option></select>
             </div>
           </div>
-          <button class="btn-main" onclick="addProduct()">💊 إضافة المنتج</button>
+          <button class="btn-main" onclick="addProduct()"><svg class="icon icon-sm" href="#icon-pill"></svg> إضافة المنتج</button>
         </div>
       </div>
 
@@ -201,10 +308,10 @@
             <div class="fg"><label>البريد المُنشأ تلقائيًا</label><input id="courierNewEmail" type="text" placeholder="يظهر تلقائيًا من اسم المندوب" readonly></div>
             <div class="fg"><label>كلمة المرور المُنشأة تلقائيًا</label><input id="courierNewPassword" type="text" placeholder="تظهر تلقائيًا من بيانات الحساب" readonly></div>
           </div>
-          <button class="btn-main" onclick="createCourier()">🚚 إنشاء حساب المندوب</button>
-          <p style="font-size:11px;color:var(--muted);margin-top:10px;">يتم حفظ الحساب في Firebase. سلّم المندوب البريد وكلمة المرور الظاهرين له للدخول إلى بوابة التوصيل.</p>
+          <button class="btn-main" onclick="createCourier()"><svg class="icon icon-sm" href="#icon-truck"></svg> إنشاء حساب المندوب</button>
+          <p style="font-size:11px;color:var(--color-muted-foreground);margin-top:10px;">يتم حفظ الحساب في Firebase. سلّم المندوب البريد وكلمة المرور الظاهرين له للدخول إلى بوابة التوصيل.</p>
         </div>
-        <div class="prod-list" id="couriersList"><div style="text-align:center;padding:30px;color:var(--muted);">⏳ جاري تحميل المندوبين...</div></div>
+        <div class="prod-list" id="couriersList"><div style="text-align:center;padding:30px;color:var(--color-muted-foreground);"><svg class="icon icon-md" href="#icon-spinner"></svg> جاري تحميل المندوبين...</div></div>
       </div>
 
     </div><!-- /content -->
@@ -214,12 +321,12 @@
 <!-- MODALS -->
 <div class="modal-bg" id="modal-changePass">
   <div class="modal">
-    <div class="modal-title">🔑 تغيير كلمة المرور</div>
+    <div class="modal-title"><svg class="icon icon-sm" href="#icon-key"></svg> تغيير كلمة المرور</div>
     <input class="modal-field" type="password" id="cpOld" placeholder="الحالية">
     <input class="modal-field" type="password" id="cpNew" placeholder="الجديدة (6 أحرف على الأقل)">
     <input class="modal-field" type="password" id="cpCf" placeholder="تأكيد الجديدة">
     <div class="modal-btns">
-      <button class="mbtn-save" onclick="doChangePass()">💾 حفظ</button>
+      <button class="mbtn-save" onclick="doChangePass()"><svg class="icon icon-sm" href="#icon-save"></svg> حفظ</button>
       <button class="mbtn-cancel" onclick="closeModal('changePass')">إلغاء</button>
     </div>
   </div>
@@ -227,22 +334,22 @@
 
 <div class="modal-bg" id="modal-clearOrders">
   <div class="modal">
-    <div class="modal-title">🗑 جرد ومسح الطلبات</div>
+    <div class="modal-title"><svg class="icon icon-sm" href="#icon-trash"></svg> جرد ومسح الطلبات</div>
     <div class="clear-opt sel" id="opt-delivered" onclick="selClearOpt('delivered')">
-      <span style="font-size:22px;">✅</span>
+      <svg class="icon" href="#icon-check"></svg>
       <div class="clear-opt-info"><h4>المكتملة فقط</h4><p>الطلبات اللي تم توصيلها</p></div>
     </div>
     <div class="clear-opt" id="opt-cancelled" onclick="selClearOpt('cancelled')">
-      <span style="font-size:22px;">❌</span>
+      <svg class="icon" href="#icon-cancel"></svg>
       <div class="clear-opt-info"><h4>الملغية فقط</h4><p>الطلبات الملغية</p></div>
     </div>
     <div class="clear-opt" id="opt-all" onclick="selClearOpt('all')">
-      <span style="font-size:22px;">🗑</span>
+      <svg class="icon" href="#icon-trash"></svg>
       <div class="clear-opt-info"><h4>كل الطلبات</h4><p>تحذير: مش هترجع</p></div>
     </div>
-    <div id="clearCountLbl" style="font-size:12px;color:var(--muted);margin:10px 0;text-align:center;"></div>
+    <div id="clearCountLbl"></div>
     <div class="modal-btns">
-      <button class="mbtn-save danger" onclick="doClear()">🗑 مسح الآن</button>
+      <button class="mbtn-save danger" onclick="doClear()"><svg class="icon icon-sm" href="#icon-trash"></svg> مسح الآن</button>
       <button class="mbtn-cancel" onclick="closeModal('clearOrders')">إلغاء</button>
     </div>
   </div>
@@ -250,24 +357,24 @@
 
 <div class="modal-bg" id="modal-rxPrice">
   <div class="modal">
-    <div class="modal-title">💰 تسعير الروشتة</div>
-    <div id="rxPriceOrderInfo" style="font-size:12px;color:var(--muted);margin-bottom:12px;"></div>
-    <div id="rxPriceItems" style="margin-bottom:12px;"></div>
-    <div style="font-size:12px;font-weight:800;color:var(--muted);margin:4px 0 8px;">💊 أدوية الروشتة</div>
+    <div class="modal-title"><svg class="icon icon-sm" href="#icon-money"></svg> تسعير الروشتة</div>
+    <div id="rxPriceOrderInfo"></div>
+    <div id="rxPriceItems"></div>
+    <div style="font-size:12px;font-weight:800;color:var(--color-muted-foreground);margin:4px 0 8px;"><svg class="icon icon-sm" href="#icon-pill"></svg> أدوية الروشتة</div>
     <div id="rxMedicationRows"></div>
     <datalist id="rxProductOptions"></datalist>
-    <button type="button" class="add-addr-btn" style="margin-bottom:10px;" onclick="addRxMedicationRow()">＋ إضافة دواء</button>
-    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:10px;">
+    <button type="button" class="add-addr-btn" style="margin-bottom:10px;" onclick="addRxMedicationRow()"><svg class="icon icon-sm" href="#icon-plus"></svg> إضافة دواء</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--color-muted);border:1px solid var(--color-border);border-radius:10px;padding:11px 14px;margin-bottom:10px;">
       <span style="font-weight:800;">إجمالي الأدوية</span>
-      <strong id="rxMedsTotal" style="color:var(--gold);font-size:17px;">0 جنيه</strong>
+      <strong id="rxMedsTotal" style="color:var(--color-secondary);font-size:17px;">0 جنيه</strong>
     </div>
     <input class="modal-field" type="number" id="rxDeliveryFee" min="0" step="0.01" value="25" placeholder="رسوم التوصيل">
-    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,201,167,.08);border:1px solid rgba(0,201,167,.22);border-radius:10px;padding:11px 14px;margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(3, 105, 161, 0.08);border:1px solid rgba(3, 105, 161, 0.22);border-radius:10px;padding:11px 14px;margin-bottom:10px;">
       <span style="font-weight:900;">الإجمالي الكلي</span>
-      <strong id="rxGrandTotal" style="color:var(--teal);font-size:18px;">25 جنيه</strong>
+      <strong id="rxGrandTotal" style="color:var(--color-primary);font-size:18px;">25 جنيه</strong>
     </div>
     <div class="modal-btns">
-      <button class="mbtn-save" onclick="saveRxPricing()">💾 حفظ السعر وتأكيد الطلب</button>
+      <button class="mbtn-save" onclick="saveRxPricing()"><svg class="icon icon-sm" href="#icon-save"></svg> حفظ السعر وتأكيد الطلب</button>
       <button class="mbtn-cancel" onclick="closeModal('rxPrice')">إلغاء</button>
     </div>
   </div>
@@ -275,23 +382,23 @@
 
 <div class="modal-bg rx-view-modal" id="modal-rxView">
   <div class="modal">
-    <div class="modal-title">🧾 صورة الروشتة</div>
+    <div class="modal-title"><svg class="icon icon-sm" href="#icon-receipt"></svg> صورة الروشتة</div>
     <div class="rx-image-toolbar">
-      <button type="button" class="btn-sm" onclick="toggleRxZoom()">🔍 تكبير / تصغير</button>
-      <button type="button" class="btn-sm" onclick="fullscreenRx()">⛶ ملء الشاشة</button>
+      <button type="button" class="btn-sm" onclick="toggleRxZoom()"><svg class="icon icon-sm" href="#icon-search"></svg> تكبير / تصغير</button>
+      <button type="button" class="btn-sm" onclick="fullscreenRx()"><svg class="icon icon-sm" href="#icon-fullscreen"></svg> ملء الشاشة</button>
     </div>
     <div class="rx-image-frame">
       <img id="rxViewImg" src="" onclick="toggleRxZoom()" alt="صورة الروشتة">
     </div>
     <div class="modal-btns">
-      <button class="mbtn-cancel" onclick="closeModal('rxView')">إغلاق</button>
+      <button class="mbtn-cancel" onclick="closeModal('rxView')"><svg class="icon icon-sm" href="#icon-close"></svg> إغلاق</button>
     </div>
   </div>
 </div>
 
 <div class="modal-bg" id="modal-courierCredentials">
   <div class="modal">
-    <div class="modal-title">✅ تم إنشاء بيانات المندوب</div>
+    <div class="modal-title"><svg class="icon icon-sm" href="#icon-check"></svg> تم إنشاء بيانات المندوب</div>
     <label class="modal-label">البريد الإلكتروني</label>
     <div class="copy-field"><input class="modal-field" id="createdCourierEmail" readonly><button type="button" class="btn-sm" onclick="copyCourierCredential('createdCourierEmail')">نسخ</button></div>
     <label class="modal-label">كلمة المرور</label>
@@ -304,6 +411,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="js/firebase-config-compat.js"></script>
+<script type="module" src="js/admin-utils.js"></script>
 <script src="js/admin.js"></script>
 </body>
 </html>

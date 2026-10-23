@@ -9,6 +9,15 @@ const auth = getAuth(app);
 
 const el = document.getElementById('mainContent');
 
+const ICON_RECEIPT = '<svg class="icon icon-md" href="#icon-receipt"></svg>';
+const ICON_CLOSE   = '<svg class="icon icon-md" href="#icon-close"></svg>';
+const ICON_PILL    = '<svg class="icon icon-md" href="#icon-pill"></svg>';
+const ICON_CHECK   = '<svg class="icon icon-md" href="#icon-check"></svg>';
+const ICON_USER    = '<svg class="icon icon-sm" href="#icon-user"></svg>';
+const ICON_PHONE   = '<svg class="icon icon-sm" href="#icon-phone"></svg>';
+const ICON_MAP     = '<svg class="icon icon-sm" href="#icon-map-pin"></svg>';
+const ICON_MONEY   = '<svg class="icon icon-sm" href="#icon-money"></svg>';
+
 const params  = new URLSearchParams(window.location.search);
 const orderId = params.get('order');
 
@@ -27,20 +36,20 @@ async function loadOrder(id) {
       if (!snap.exists()) { showNotFound(); return; }
       renderInvoice({ docId: snap.id, ...snap.data() });
     }, e => {
-      el.innerHTML = `<div class="center-state"><div class="em">❌</div><p>حصل خطأ: ${e.message}</p></div>`;
+      el.innerHTML = `<div class="center-state">${ICON_CLOSE}<p>حصل خطأ: ${e.message}</p></div>`;
     });
   } catch (e) {
-    el.innerHTML = `<div class="center-state"><div class="em">❌</div><p>حصل خطأ: ${e.message}</p></div>`;
+    el.innerHTML = `<div class="center-state">${ICON_CLOSE}<p>حصل خطأ: ${e.message}</p></div>`;
   }
 }
 
 function showNotFound() {
   el.innerHTML = `
     <div class="center-state">
-      <div class="em">🧾</div>
-      <h2 style="color:var(--text);margin-bottom:8px;">مفيش فاتورة</h2>
+      ${ICON_RECEIPT}
+      <h2 style="color:var(--color-foreground);margin-bottom:8px;">مفيش فاتورة</h2>
       <p>اتجه للمتجر وأتم طلبك أولاً</p><br>
-      <button class="btn btn-teal" onclick="location.href='./index.html'" style="margin:auto;">🏪 روح للمتجر</button>
+      <button class="btn btn-teal" onclick="location.href='./index.html'" style="margin:auto;">روح للمتجر</button>
     </div>`;
 }
 
@@ -77,7 +86,7 @@ function renderInvoice(data) {
   const itemsHTML = (data.items || []).map(item => {
     const thumb = item.imageUrl
       ? `<img class="item-img" src="${item.imageUrl}" alt="${item.name}">`
-      : `<span class="item-emoji">${item.emoji || '💊'}</span>`;
+      : ICON_PILL;
     const priceCell = isRx ? (item.price != null ? `${item.price} ج` : 'يحدده الصيدلي') : `${item.price} ج`;
     const totalCell = isRx ? (item.price != null ? `${item.price * item.qty} ج` : '—') : `${item.price * item.qty} ج`;
     return `<tr>
@@ -91,25 +100,27 @@ function renderInvoice(data) {
   const prescriptionSrc = prescriptionImageSrc(data);
   const rxBoxHTML = isRx ? `
     <section class="rx-box">
-      <div class="section-heading">🧾 الروشتة الأصلية</div>
+      <div class="section-heading">${ICON_RECEIPT} الروشتة الأصلية</div>
       ${prescriptionSrc ? `<img src="${prescriptionSrc}" alt="الروشتة الأصلية"><a class="rx-open-link" href="${prescriptionSrc}" target="_blank" rel="noopener">فتح الصورة</a>` : '<div class="rx-note">صورة الروشتة غير متاحة لهذا الطلب</div>'}
     </section>` : '';
 
   const progressStates = ['pending','confirmed','priced','ready','assigned','picked_up','out_for_delivery','delivered'];
   const progressLabels = ['طلب جديد','تأكيد','تسعير','تجهيز','تعيين المندوب','استلام المندوب','توصيل','تم التسليم'];
   const progressIndex = Math.max(0, progressStates.indexOf(data.status || 'pending'));
-  const progressHTML = `<section class="medical-progress"><div class="section-heading">📋 مسار الطلب</div><div class="progress-track">${progressLabels.map((label,index)=>`<div class="progress-step ${index <= progressIndex ? 'active' : ''} ${index === progressIndex ? 'current' : ''}"><span>${index < progressIndex ? '✓' : index + 1}</span><b>${label}</b></div>`).join('')}</div></section>`;
+  const progressHTML = `<section class="medical-progress"><div class="section-heading">${ICON_RECEIPT} مسار الطلب</div><div class="progress-track">${progressLabels.map((label,index)=>`<div class="progress-step ${index <= progressIndex ? 'active' : ''} ${index === progressIndex ? 'current' : ''}"><span>${index < progressIndex ? ICON_CHECK : index + 1}</span><b>${label}</b></div>`).join('')}</div></section>`;
 
+  const bannerIconRx = '<svg class="icon icon-md" href="#icon-receipt"></svg>';
+  const bannerIconStd = '<svg class="icon icon-md" href="#icon-check"></svg>';
   const bannerHTML = isRx ? `
     <div class="success-banner rx">
-      <div class="success-icon">🧾</div>
+      <div class="success-icon">${bannerIconRx}</div>
       <div class="success-text">
         <h3>${data.status === 'delivered' ? 'تم تسليم طلبك بنجاح!' : 'تم استلام روشتتك بنجاح!'}</h3>
         <p>${data.status === 'delivered' && data.deliveredBy ? `استلمه المندوب ${data.deliveredBy.name || '—'} ورقم هاتفه ${data.deliveredBy.phone || '—'}` : (data.total != null ? 'تمت مراجعة الروشتة وتحديد السعر والتوصيل. تقدر تراجع الفاتورة من طلباتك في أي وقت.' : 'الصيدلي بيراجعها دلوقتي وهيحدد السعر والتوصيل. تقدر ترجع للطلب من «طلباتي» في أي وقت.')}</p>
       </div>
     </div>` : `
     <div class="success-banner">
-      <div class="success-icon">🎉</div>
+      <div class="success-icon">${bannerIconStd}</div>
       <div class="success-text">
         <h3>${data.status === 'delivered' ? 'تم تسليم طلبك بنجاح!' : 'تم استلام طلبك بنجاح!'}</h3>
         <p>${data.status === 'delivered' && data.deliveredBy ? `استلمه المندوب ${data.deliveredBy.name || '—'} ورقم هاتفه ${data.deliveredBy.phone || '—'}` : 'فريقنا بيجهز طلبك دلوقتي — هتوصلك في أقرب وقت'}</p>
@@ -118,7 +129,7 @@ function renderInvoice(data) {
 
   const totalsHTML = isRx ? `
     <div class="inv-totals">
-      ${data.total != null ? `<div class="inv-total-row"><span class="lbl">إجمالي الأدوية</span><span class="amt">${subtotal} جنيه</span></div><div class="inv-total-row"><span class="lbl">رسوم التوصيل</span><span class="amt">${delivery} جنيه</span></div><div class="inv-total-row grand"><span class="lbl">الإجمالي الكلي</span><span class="amt">${grandTotal} جنيه</span></div>` : `<div class="inv-total-row"><span class="lbl">حالة التسعير</span><span class="amt">في انتظار مراجعة الصيدلي</span></div>`} 
+      ${data.total != null ? `<div class="inv-total-row"><span class="lbl">إجمالي الأدوية</span><span class="amt">${subtotal} جنيه</span></div><div class="inv-total-row"><span class="lbl">رسوم التوصيل</span><span class="amt">${delivery} جنيه</span></div><div class="inv-total-row grand"><span class="lbl">الإجمالي الكلي</span><span class="amt">${grandTotal} جنيه</span></div>` : `<div class="inv-total-row"><span class="lbl">حالة التسعير</span><span class="amt">في انتظار مراجعة الصيدلي</span></div>`}
     </div>` : `
     <div class="inv-totals">
       <div class="inv-total-row"><span class="lbl">المجموع الفرعي</span><span class="amt">${subtotal} جنيه</span></div>
@@ -127,16 +138,19 @@ function renderInvoice(data) {
       <div class="inv-total-row grand"><span class="lbl">الإجمالي الكلي</span><span class="amt">${grandTotal} جنيه</span></div>
     </div>`;
 
+  const collectedIcon = '<svg class="icon icon-sm" href="#icon-check"></svg>';
+  const pendingIcon = '<svg class="icon icon-sm" href="#icon-close"></svg>';
+
   el.innerHTML = `
     ${bannerHTML}
     ${rxBoxHTML}
     <div class="invoice" id="invoicePrint">
       <div class="inv-header">
         <div>
-          <div class="inv-brand-name">✚ Dawaok | دواوك</div>
+          <div class="inv-brand-name">Dawaok | دواوك</div>
           <div class="inv-brand-sub">صيدلية دواوك</div>
           <div class="inv-brand-sub">فاتورة صيدلية / طلب روشتة</div>
-          <div class="inv-brand-sub" style="margin-top:6px;">📞 19998 &nbsp;|&nbsp; dawaok.com</div>
+          <div class="inv-brand-sub" style="margin-top:6px;">${ICON_PHONE} 19998 &nbsp;|&nbsp; dawaok.com</div>
         </div>
         <div style="text-align:center;">
           <div class="inv-badge">
@@ -149,11 +163,11 @@ function renderInvoice(data) {
       <div class="inv-body">
         <div class="inv-meta">
           <div class="inv-meta-block">
-            <label>👤 بيانات العميل</label>
+            <label>${ICON_USER} بيانات العميل</label>
             <div class="val">${data.customer?.name || '—'}</div>
-            <div class="val hl">📞 ${data.customer?.phone || '—'}</div>
-            <div style="font-size:12px;color:#7a8fa8;margin-top:4px;">📍 ${data.customer?.address || '—'}</div>
-            ${data.customer?.location ? `<a href="https://www.google.com/maps/search/?api=1&query=${data.customer.location.lat},${data.customer.location.lng}" target="_blank" rel="noopener" style="display:inline-block;margin-top:7px;color:#008c73;font-size:12px;font-weight:800;">📍 فتح موقع العميل</a>` : ''}
+            <div class="val hl">${ICON_PHONE} ${data.customer?.phone || '—'}</div>
+            <div style="font-size:12px;color:var(--color-muted-foreground);margin-top:4px;">${ICON_MAP} ${data.customer?.address || '—'}</div>
+            ${data.customer?.location ? `<a href="https://www.google.com/maps/search/?api=1&query=${data.customer.location.lat},${data.customer.location.lng}" target="_blank" rel="noopener" style="display:inline-block;margin-top:7px;color:var(--color-accent);font-size:12px;font-weight:800;">${ICON_MAP} فتح موقع العميل</a>` : ''}
           </div>
           <div class="inv-meta-block" style="text-align:left;">
             <label>تفاصيل الفاتورة</label>
@@ -166,12 +180,12 @@ function renderInvoice(data) {
           <tbody>${itemsHTML}</tbody>
         </table>` : ''}
         ${totalsHTML}
-        <div class="payment-box"><b>طريقة الدفع: الدفع عند الاستلام</b><span>💵 المبلغ المطلوب تحصيله: ${grandTotal} جنيه</span><span class="payment-status ${data.paymentCollected ? 'collected' : ''}">${data.paymentCollected ? '🟢 تم التحصيل' : '🟡 لم يتم التحصيل بعد'}</span></div>
+        <div class="payment-box"><b>طريقة الدفع: الدفع عند الاستلام</b><span>${ICON_MONEY} المبلغ المطلوب تحصيله: ${grandTotal} جنيه</span><span class="payment-status ${data.paymentCollected ? 'collected' : ''}">${data.paymentCollected ? collectedIcon + ' تم التحصيل' : pendingIcon + ' لم يتم التحصيل بعد'}</span></div>
         ${progressHTML}
       </div>
       <div class="inv-footer">
         <div>
-          <div class="inv-footer-note">شكرًا لثقتك في دواوك 💚</div>
+          <div class="inv-footer-note">شكرًا لثقتك في دواوك</div>
           <div class="inv-footer-note">هذه فاتورة إلكترونية معتمدة</div>
         </div>
       </div>

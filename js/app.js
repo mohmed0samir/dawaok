@@ -8,6 +8,7 @@ import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   signOut, onAuthStateChanged, updateProfile, deleteUser, setPersistence, browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { formatAddr, statusLabel, translateAuthErr } from './utils.js';
 
 const app     = initializeApp(firebaseConfig);
 const db      = getFirestore(app);
@@ -49,18 +50,6 @@ function orderInvoiceUrl(id) {
   return 'invoice.html?order=' + encodeURIComponent(id);
 }
 
-function statusLabel(s, order) {
-  if (s === 'cancelled' && order?.type === 'prescription') {
-    return '❌ تم إلغاء الروشتة — الدواء غير متاح في الوقت الحالي';
-  }
-  if (['picked_up', 'out_for_delivery', 'delivered'].includes(s)) {
-    const courier = order?.deliveredBy || order?.courier;
-    if (courier) {
-      return `✅ تم الاستلام من المندوب ${courier.name || '—'} ورقمه ${courier.phone || '—'}`;
-    }
-  }
-  return ({pending:'🟡 طلب جديد / قيد المراجعة', priced:'🟢 تم التسعير', ready:'🔵 جاهز للتوصيل', assigned:'🟣 تم تعيين مندوب', picked_up:'📦 استلم المندوب الطلب', out_for_delivery:'🟠 جاري التوصيل', confirmed:'✅ مؤكد وجاهز للتوصيل', delivered:'✅ تم التسليم', cancelled:'❌ ملغي'})[s] || '—';
-}
 
 async function loadMyOrders() {
   const el = document.getElementById(currentUser ? 'myOrdersList' : 'guestOrdersList');
@@ -284,11 +273,6 @@ window.pickAddr = (id) => {
   updateLocationSummary('cart');
 };
 
-function formatAddr(a) {
-  return [a.street, `عمارة ${a.building||''}`, a.floor?`دور ${a.floor}`:'', a.apartment?`شقة ${a.apartment}`:'', a.area, a.city, a.governorate, a.landmark?`(${a.landmark})`:'']
-    .filter(Boolean).join('، ');
-}
-
 function prefillCheckoutFromProfile() {
   if (!currentUser) return;
   document.getElementById('custName').value = document.getElementById('profName').textContent || '';
@@ -426,14 +410,6 @@ window.deleteCustomerAccount = async () => {
   }
 };
 
-function translateAuthErr(e) {
-  const c = e.code || '';
-  if (c.includes('email-already-in-use')) return 'البريد ده متسجل قبل كده';
-  if (c.includes('invalid-email')) return 'البريد الإلكتروني مش صحيح';
-  if (c.includes('user-not-found') || c.includes('invalid-credential') || c.includes('wrong-password')) return 'البيانات غلط';
-  if (c.includes('weak-password')) return 'كلمة المرور ضعيفة';
-  return e.message || 'حصل خطأ';
-}
 
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
@@ -691,7 +667,7 @@ window.submitRxOrder = async () => {
     const imageBase64 = rxBase64.split(',')[1];
     const mimeType = rxBase64.split(';')[0].split(':')[1] || 'image/jpeg';
     if (imageBase64.length > 14 * 1024 * 1024) {
-      return toast('⚠️ صورة الروشتة كبيرة جدًا، اختار صورة أصغر من 10MB');
+      return toast('⚠️ صورة الروشتة كبيرة جدًا، اختار صورة أصغر من 14MB');
     }
 
     const rxOrderCode = 'RX-' + Date.now();
