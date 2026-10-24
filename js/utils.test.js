@@ -43,53 +43,53 @@ describe('formatAddr', () => {
 
 describe('statusLabel', () => {
   it('returns pending label for new orders', () => {
-    expect(statusLabel('pending', {})).toBe('🟡 طلب جديد / قيد المراجعة');
+    expect(statusLabel('pending', {})).toBe('طلب جديد / قيد المراجعة');
   });
 
   it('returns priced label', () => {
-    expect(statusLabel('priced', {})).toBe('🟢 تم التسعير');
+    expect(statusLabel('priced', {})).toBe('تم التسعير');
   });
 
   it('returns ready label', () => {
-    expect(statusLabel('ready', {})).toBe('🔵 جاهز للتوصيل');
+    expect(statusLabel('ready', {})).toBe('جاهز للتوصيل');
   });
 
   it('returns assigned label', () => {
-    expect(statusLabel('assigned', {})).toBe('🟣 تم تعيين مندوب');
+    expect(statusLabel('assigned', {})).toBe('تم تعيين مندوب');
   });
 
   it('returns picked_up label', () => {
-    expect(statusLabel('picked_up', {})).toBe('📦 استلم المندوب الطلب');
+    expect(statusLabel('picked_up', {})).toBe('استلم المندوب الطلب');
   });
 
   it('returns out_for_delivery label', () => {
-    expect(statusLabel('out_for_delivery', {})).toBe('🟠 جاري التوصيل');
+    expect(statusLabel('out_for_delivery', {})).toBe('جاري التوصيل');
   });
 
   it('returns confirmed label', () => {
-    expect(statusLabel('confirmed', {})).toBe('✅ مؤكد وجاهز للتوصيل');
+    expect(statusLabel('confirmed', {})).toBe('مؤكد وجاهز للتوصيل');
   });
 
   it('returns delivered label', () => {
-    expect(statusLabel('delivered', {})).toBe('✅ تم التسليم');
+    expect(statusLabel('delivered', {})).toBe('تم التسليم');
   });
 
   it('returns cancelled label', () => {
-    expect(statusLabel('cancelled', {})).toBe('❌ ملغي');
+    expect(statusLabel('cancelled', {})).toBe('ملغي');
   });
 
   it('returns special prescription cancelled message', () => {
-    expect(statusLabel('cancelled', { type: 'prescription' })).toBe('❌ تم إلغاء الروشتة — الدواء غير متاح في الوقت الحالي');
+    expect(statusLabel('cancelled', { type: 'prescription' })).toBe('تم إلغاء الروشتة — الدواء غير متاح في الوقت الحالي');
   });
 
   it('includes courier info when deliveredBy present for terminal statuses', () => {
     const order = { deliveredBy: { name: 'أحمد', phone: '0123456789' } };
-    expect(statusLabel('delivered', order)).toBe('✅ تم الاستلام من المندوب أحمد ورقمه 0123456789');
+    expect(statusLabel('delivered', order)).toBe('تم الاستلام من المندوب أحمد ورقمه 0123456789');
   });
 
   it('includes courier info from courier field when deliveredBy absent', () => {
     const order = { courier: { name: 'سارة', phone: '01987654321' } };
-    expect(statusLabel('picked_up', order)).toBe('✅ تم الاستلام من المندوب سارة ورقمه 01987654321');
+    expect(statusLabel('picked_up', order)).toBe('تم الاستلام من المندوب سارة ورقمه 01987654321');
   });
 
   it('returns dash for unknown status', () => {
@@ -98,7 +98,7 @@ describe('statusLabel', () => {
 
   it('does not include courier info for non-terminal statuses', () => {
     const order = { deliveredBy: { name: 'أحمد', phone: '0123456789' } };
-    expect(statusLabel('pending', order)).toBe('🟡 طلب جديد / قيد المراجعة');
+    expect(statusLabel('pending', order)).toBe('طلب جديد / قيد المراجعة');
   });
 });
 

@@ -45,6 +45,7 @@
   /* ── Transition ── */
   --transition-base: 200ms ease;
   --transition-slow: 300ms ease;
+  --transition-fast: 100ms ease;
 }
 
 *,
@@ -444,7 +445,7 @@ img {
 .stat-icon {
   position: absolute;
   top: var(--space-sm);
-  left: var(--space-sm);
+  right: var(--space-sm);
   font-size: 24px;
 }
 

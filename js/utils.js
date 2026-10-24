@@ -12,15 +12,15 @@ export function formatAddr(a) {
 
 export function statusLabel(s, order) {
   if (s === 'cancelled' && order?.type === 'prescription') {
-    return '❌ تم إلغاء الروشتة — الدواء غير متاح في الوقت الحالي';
+    return 'تم إلغاء الروشتة — الدواء غير متاح في الوقت الحالي';
   }
   if (['picked_up', 'out_for_delivery', 'delivered'].includes(s)) {
     const courier = order?.deliveredBy || order?.courier;
     if (courier) {
-      return `✅ تم الاستلام من المندوب ${courier.name || '—'} ورقمه ${courier.phone || '—'}`;
+      return `تم الاستلام من المندوب ${courier.name || '—'} ورقمه ${courier.phone || '—'}`;
     }
   }
-  return ({ pending: '🟡 طلب جديد / قيد المراجعة', priced: '🟢 تم التسعير', ready: '🔵 جاهز للتوصيل', assigned: '🟣 تم تعيين مندوب', picked_up: '📦 استلم المندوب الطلب', out_for_delivery: '🟠 جاري التوصيل', confirmed: '✅ مؤكد وجاهز للتوصيل', delivered: '✅ تم التسليم', cancelled: '❌ ملغي' })[s] || '—';
+  return ({ pending: 'طلب جديد / قيد المراجعة', priced: 'تم التسعير', ready: 'جاهز للتوصيل', assigned: 'تم تعيين مندوب', picked_up: 'استلم المندوب الطلب', out_for_delivery: 'جاري التوصيل', confirmed: 'مؤكد وجاهز للتوصيل', delivered: 'تم التسليم', cancelled: 'ملغي' })[s] || '—';
 }
 
 export function translateAuthErr(e) {
