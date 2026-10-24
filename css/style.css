@@ -733,7 +733,7 @@ header {
 .product-badge {
   position: absolute;
   top: var(--space-sm);
-  left: var(--space-sm);
+  right: var(--space-sm);
   background: var(--color-primary);
   color: #fff;
   font-size: 11px;

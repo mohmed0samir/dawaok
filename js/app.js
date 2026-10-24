@@ -66,7 +66,7 @@ async function loadMyOrders() {
     }
     docs.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
     if (!docs.length) {
-      el.innerHTML = '<div class="account-empty" style="padding:18px;"><div class="em">📦</div><p>مفيش طلبات لسه</p></div>';
+      el.innerHTML = '<div class="account-empty" style="padding:18px;"><div class="em"><svg class="icon icon-md" href="#icon-box"></svg></div><p>مفيش طلبات لسه</p></div>';
       return;
     }
     // العميل يشوف كل الطلبات الحالية، لكن سجل الطلبات السابقة
@@ -83,15 +83,15 @@ async function loadMyOrders() {
       const progress = ['pending','priced','ready','assigned','picked_up','out_for_delivery','delivered'];
       const step = Math.max(0, progress.indexOf(x.status));
       return `<div class="my-order-card">
-        <div class="my-order-top"><b>${isRx?'🧾 روشتة':'🛒 منتجات'}</b><span>${statusLabel(x.status, x)}</span></div>
+        <div class="my-order-top"><b>${isRx?'<svg class="icon icon-sm" href="#icon-receipt"></svg> روشتة':'<svg class="icon icon-sm" href="#icon-cart"></svg> منتجات'}</b><span>${statusLabel(x.status, x)}</span></div>
         <div class="my-order-id">${x.orderId || x.id.slice(0,10)}</div>
         <div class="my-order-price">${price}</div>
         ${x.status !== 'cancelled' ? `<div class="order-progress" aria-label="حالة الطلب"><i style="width:${Math.max(8, step / 6 * 100)}%"></i></div>` : ''}
-        <button class="add-addr-btn" onclick="window.openOrderInvoice('${x.id}')">🧾 عرض الفاتورة / الطلب</button>
+        <button class="add-addr-btn" onclick="window.openOrderInvoice('${x.id}')"><svg class="icon icon-sm" href="#icon-receipt"></svg> عرض الفاتورة / الطلب</button>
       </div>`;
     };
-    el.innerHTML = (active.length ? `<div class="account-section-title"><span>🟢 الطلبات الحالية</span></div>${active.map(card).join('')}` : '')
-      + (old.length ? `<div class="account-section-title" style="margin-top:14px;"><span>📚 الطلبات السابقة</span></div>${old.map(card).join('')}` : '');
+    el.innerHTML = (active.length ? `<div class="account-section-title"><span>الطلبات الحالية</span></div>${active.map(card).join('')}` : '')
+      + (old.length ? `<div class="account-section-title" style="margin-top:14px;"><span>الطلبات السابقة</span></div>${old.map(card).join('')}` : '');
   } catch (e) {
     console.error(e);
     el.innerHTML = '<div style="color:var(--danger);font-size:12px;padding:12px;">تعذر تحميل الطلبات</div>';
@@ -119,7 +119,7 @@ function renderProducts() {
   document.getElementById('productsCount').textContent = list.length + ' منتج';
 
   if (!list.length) {
-    grid.innerHTML = `<div class="empty-products"><div class="em">🔍</div><p>مفيش منتجات هنا دلوقتي</p></div>`;
+    grid.innerHTML = `<div class="empty-products"><div class="em"><svg class="icon icon-md" href="#icon-search"></svg></div><p>مفيش منتجات هنا دلوقتي</p></div>`;
     return;
   }
 
@@ -134,7 +134,7 @@ function renderProducts() {
       <div class="product-img">
         ${p.imageUrl
           ? `<img src="${p.imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="${p.name}">`
-          : (p.emoji || '💊')}
+          : '<svg class="icon icon-md" href="#icon-pill"></svg>'}
         ${badgeHtml}
         ${!inStock ? '<div class="out-badge">غير متاح في الوقت الحالي</div>' : ''}
       </div>
@@ -167,12 +167,12 @@ window.filterCat = (cat) => {
 window.addToCart = (id) => {
   const p = allProducts.find(x => x.id === id);
   if (!p) return;
-  if (Number(p.stock || 0) < 1) { toast('⚠️ المنتج غير متاح في الوقت الحالي'); return; }
+  if (Number(p.stock || 0) < 1) { toast('المنتج غير متاح في الوقت الحالي'); return; }
   const idx = cart.findIndex(x => x.id === id);
   if (idx > -1) cart[idx].qty++;
-  else cart.push({ id, name: p.name, emoji: p.emoji || '💊', imageUrl: p.imageUrl||null, price: p.discount ? Math.round(p.price*(1-p.discount/100)) : p.price, qty: 1 });
+  else cart.push({ id, name: p.name, emojiIcon: '<svg class="icon icon-sm" href="#icon-pill"></svg>', imageUrl: p.imageUrl||null, price: p.discount ? Math.round(p.price*(1-p.discount/100)) : p.price, qty: 1 });
   saveCart();
-  toast(`✅ تم إضافة ${p.name}`);
+  toast(`<svg class="icon icon-sm" href="#icon-check"></svg> تم إضافة ${p.name}`);
 };
 
 window.changeQty = (id, delta) => {
@@ -199,14 +199,14 @@ function renderCart() {
   const el = document.getElementById('cartItems');
   const footer = document.getElementById('cartFooter');
   if (!cart.length) {
-    el.innerHTML = `<div class="cart-empty"><div class="em">🛒</div><p>سلتك فارغة</p></div>`;
+    el.innerHTML = `<div class="cart-empty"><div class="em"><svg class="icon icon-md" href="#icon-cart"></svg></div><p>سلتك فارغة</p></div>`;
     footer.style.display = 'none';
     return;
   }
   footer.style.display = 'block';
   el.innerHTML = cart.map(item => `
     <div class="cart-item">
-      <div class="cart-item-emoji">${item.emoji}</div>
+      <div class="cart-item-emoji">${item.emojiIcon || '<svg class="icon icon-sm" href="#icon-pill"></svg>'}</div>
       <div class="cart-item-info">
         <div class="cart-item-name">${item.name}</div>
         <div class="cart-item-price">${item.price * item.qty} جنيه</div>
@@ -216,7 +216,7 @@ function renderCart() {
           <button class="qty-btn" onclick="changeQty('${item.id}',1)">+</button>
         </div>
       </div>
-      <button class="remove-btn" onclick="removeItem('${item.id}')">🗑</button>
+      <button class="remove-btn" onclick="removeItem('${item.id}')"><svg class="icon icon-sm" href="#icon-trash"></svg></button>
     </div>
   `).join('');
   const total = cart.reduce((s,x) => s + x.price*x.qty, 0);
@@ -254,10 +254,10 @@ function renderSavedAddrPicker() {
   wrap.style.display = 'block';
   list.innerHTML = myAddresses.map(a => `
     <div class="saved-addr-pick ${a.id===selectedAddrId?'sel':''}" onclick="window.pickAddr('${a.id}')">
-      <b>${a.label||'عنوان'}</b> ${a.isDefault?'⭐':''}<br>
+      <b>${a.label||'عنوان'}</b> ${a.isDefault?'<span class="addr-default-chip">أساسي</span>':''}<br>
       ${formatAddr(a)}
     </div>
-  `).join('') + `<div class="saved-addr-pick ${selectedAddrId===null?'sel':''}" onclick="window.pickAddr(null)"><b>✍️ عنوان تاني (اكتبه تحت)</b></div>`;
+  `).join('') + `<div class="saved-addr-pick ${selectedAddrId===null?'sel':''}" onclick="window.pickAddr(null)"><b>عنوان تاني (اكتبه تحت)</b></div>`;
 }
 window.pickAddr = (id) => {
   selectedAddrId = id;
@@ -287,14 +287,14 @@ window.placeOrder = async () => {
   const name    = document.getElementById('custName').value.trim();
   const phone   = document.getElementById('custPhone').value.trim();
   const address = document.getElementById('custAddress').value.trim();
-  if (!name || !phone || !address) { toast('⚠️ اكتب اسمك وهاتفك وعنوانك'); return; }
-  if (!currentUser) { toast('⚠️ سجل دخولك أولًا لإتمام الطلب وحمايته'); return; }
-  if (!cart.length) { toast('⚠️ السلة فارغة'); return; }
+  if (!name || !phone || !address) { toast('اكتب اسمك وهاتفك وعنوانك'); return; }
+  if (!currentUser) { toast('سجل دخولك أولًا لإتمام الطلب وحمايته'); return; }
+  if (!cart.length) { toast('السلة فارغة'); return; }
   const unavailable = cart.find(item => {
     const product = allProducts.find(x => x.id === item.id);
     return !product || Number(product.stock || 0) < Number(item.qty || 0);
   });
-  if (unavailable) { toast(`⚠️ الكمية المطلوبة من ${unavailable.name} غير متاحة حاليًا`); return; }
+  if (unavailable) { toast(`الكمية المطلوبة من ${unavailable.name} غير متاحة حاليًا`); return; }
 
   const total = cart.reduce((s,x) => s + x.price*x.qty, 0);
   const orderId = 'ORD-' + Date.now();
@@ -316,12 +316,12 @@ window.placeOrder = async () => {
     saveCart();
     rememberOrderId(ref.id);
     closeCart();
-    toast('🎉 تم إرسال طلبك بنجاح!');
+    toast('<svg class="icon icon-sm" href="#icon-sparkles"></svg> تم إرسال طلبك بنجاح!');
     notifyAdminOfNewOrder(ref.id);
 
   } catch(e) {
     console.error(e);
-    toast('❌ حصل خطأ، حاول تاني');
+    toast('حصل خطأ، حاول تاني');
   }
 };
 
@@ -348,7 +348,7 @@ window.switchAuthTab = (tab) => {
 
 function showAuthError(msg) {
   const el = document.getElementById('authError');
-  el.textContent = '⚠️ ' + msg;
+  el.textContent = msg;
   el.style.display = 'block';
 }
 
@@ -366,7 +366,7 @@ window.doCustomerRegister = async () => {
     await setDoc(doc(db, 'users', cred.user.uid), {
       name, phone, email, createdAt: serverTimestamp()
     });
-    toast('🎉 تم إنشاء حسابك بنجاح!');
+    toast('<svg class="icon icon-sm" href="#icon-sparkles"></svg> تم إنشاء حسابك بنجاح!');
   } catch(e) {
     showAuthError(translateAuthErr(e));
   }
@@ -379,7 +379,7 @@ window.doCustomerLogin = async () => {
   try {
     await authPersistenceReady;
     await signInWithEmailAndPassword(auth, email, pass);
-    toast('👋 أهلاً بيك تاني!');
+    toast('أهلاً بيك تاني!');
   } catch(e) {
     showAuthError(translateAuthErr(e));
   }
@@ -387,7 +387,7 @@ window.doCustomerLogin = async () => {
 
 window.doCustomerLogout = async () => {
   await signOut(auth);
-  toast('🚪 تم تسجيل الخروج');
+  toast('تم تسجيل الخروج');
   closeAccount();
 };
 
@@ -403,17 +403,17 @@ window.deleteCustomerAccount = async () => {
     await batch.commit();
     await deleteUser(currentUser);
     closeAccount();
-    toast('✅ تم حذف حسابك نهائيًا');
+    toast('<svg class="icon icon-sm" href="#icon-check"></svg> تم حذف حسابك نهائيًا');
   } catch (e) {
     console.error(e);
-    toast(e.code === 'auth/requires-recent-login' ? '⚠️ سجل الدخول مرة أخرى ثم حاول حذف الحساب' : '❌ تعذر حذف الحساب');
+    toast(e.code === 'auth/requires-recent-login' ? 'سجل الدخول مرة أخرى ثم حاول حذف الحساب' : 'تعذر حذف الحساب');
   }
 };
 
 
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
-  document.getElementById('accountBtn').textContent = user ? '👤' : '👤';
+  document.getElementById('accountBtn').innerHTML = user ? '<svg class="icon icon-sm" href="#icon-user"></svg>' : '<svg class="icon icon-sm" href="#icon-user"></svg>';
   if (user) {
     try {
       const accountSnap = await getDoc(doc(db, 'users', user.uid));
@@ -471,7 +471,7 @@ function listenAddresses(uid) {
 function renderAddresses() {
   const wrap = document.getElementById('addrListWrap');
   if (!myAddresses.length) {
-    wrap.innerHTML = `<div class="account-empty" style="padding:20px;"><div class="em">📍</div><p>مفيش عناوين محفوظة</p></div>`;
+    wrap.innerHTML = `<div class="account-empty" style="padding:20px;"><div class="em"><svg class="icon icon-md" href="#icon-map-pin"></svg></div><p>مفيش عناوين محفوظة</p></div>`;
     return;
   }
   wrap.innerHTML = myAddresses.map(a => `
@@ -479,9 +479,9 @@ function renderAddresses() {
       <div class="addr-label">${a.label||'عنوان'} ${a.isDefault?'<span class="addr-default-chip">أساسي</span>':''}</div>
       <div class="addr-text">${formatAddr(a)}</div>
       <div class="addr-actions">
-        ${!a.isDefault?`<button onclick="window.makeDefault('${a.id}')">⭐ اجعله أساسي</button>`:''}
-        <button onclick="window.editAddr('${a.id}')">✏️ تعديل</button>
-        <button class="danger" onclick="window.deleteAddr('${a.id}')">🗑 حذف</button>
+        ${!a.isDefault?`<button onclick="window.makeDefault('${a.id}')">اجعله أساسي</button>`:''}
+        <button onclick="window.editAddr('${a.id}')">تعديل</button>
+        <button class="danger" onclick="window.deleteAddr('${a.id}')"><svg class="icon icon-sm" href="#icon-trash"></svg> حذف</button>
       </div>
     </div>
   `).join('');
@@ -524,7 +524,7 @@ window.editAddr = (id) => {
 };
 
 window.saveAddressForm = async () => {
-  if (!currentUser) return toast('⚠️ سجل دخول الأول');
+  if (!currentUser) return toast('سجل دخول الأول');
   const data = {
     label: document.getElementById('afLabel').value.trim() || 'عنوان',
     governorate: document.getElementById('afGov').value.trim(),
@@ -538,7 +538,7 @@ window.saveAddressForm = async () => {
     isDefault: document.getElementById('afDefault').checked,
     location: selectedLocation.address
   };
-  if (!data.city || !data.street) return toast('⚠️ اكتب على الأقل المدينة والشارع');
+  if (!data.city || !data.street) return toast('اكتب على الأقل المدينة والشارع');
   try {
     const col = collection(db, 'users', currentUser.uid, 'addresses');
     if (data.isDefault) {
@@ -552,9 +552,9 @@ window.saveAddressForm = async () => {
     } else {
       await addDoc(col, { ...data, createdAt: serverTimestamp() });
     }
-    toast('✅ تم حفظ العنوان');
+    toast('<svg class="icon icon-sm" href="#icon-check"></svg> تم حفظ العنوان');
     closeAddressForm();
-  } catch(e) { console.error(e); toast('❌ حصل خطأ'); }
+  } catch(e) { console.error(e); toast('حصل خطأ'); }
 };
 
 window.makeDefault = async (id) => {
@@ -563,14 +563,14 @@ window.makeDefault = async (id) => {
   const batch = writeBatch(db);
   myAddresses.forEach(a => batch.update(doc(col, a.id), { isDefault: a.id === id }));
   await batch.commit();
-  toast('⭐ اتحدد كعنوان أساسي');
+  toast('اتحدد كعنوان أساسي');
 };
 
 window.deleteAddr = async (id) => {
   if (!currentUser) return;
   if (!confirm('حذف العنوان ده؟')) return;
   await deleteDoc(doc(db, 'users', currentUser.uid, 'addresses', id));
-  toast('🗑 اتحذف');
+  toast('اتحذف');
 };
 
 // ══════════════════════════════════════════════
@@ -620,7 +620,7 @@ function updateLocationSummary(target) {
   const loc = selectedLocation[target];
   const el = document.getElementById(target + 'LocationSummary');
   if (!el) return;
-  el.textContent = loc ? `✓ تم حفظ الموقع: ${Number(loc.lat).toFixed(5)}, ${Number(loc.lng).toFixed(5)}` : 'لم يتم تحديد موقع على الخريطة بعد';
+  el.textContent = loc ? `تم حفظ الموقع: ${Number(loc.lat).toFixed(5)}, ${Number(loc.lng).toFixed(5)}` : 'لم يتم تحديد موقع على الخريطة بعد';
 }
 
 window.openMapPicker = target => {
@@ -636,13 +636,13 @@ window.openMapPicker = target => {
 };
 window.closeMapPicker = () => document.getElementById('mapModal').classList.remove('open');
 window.useCurrentLocation = () => {
-  if (!mapTarget || !navigator.geolocation) return toast('⚠️ المتصفح لا يدعم تحديد الموقع');
+  if (!mapTarget || !navigator.geolocation) return toast('المتصفح لا يدعم تحديد الموقع');
   const preview = document.getElementById('mapPreview');
-  preview.textContent = '⏳ جاري تحديد موقعك...';
+  preview.textContent = 'جاري تحديد موقعك...';
   navigator.geolocation.getCurrentPosition(pos => {
     const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude, capturedAt: new Date().toISOString() };
     selectedLocation[mapTarget] = loc;
-    preview.textContent = `✓ تم حفظ الموقع بدقة تقريبية ${Math.round(pos.coords.accuracy)} متر`;
+    preview.textContent = `تم حفظ الموقع بدقة تقريبية ${Math.round(pos.coords.accuracy)} متر`;
     const link = document.getElementById('mapExternalLink');
     link.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.lat + ',' + loc.lng)}`;
     link.style.display = 'block';
@@ -657,17 +657,17 @@ window.submitRxOrder = async () => {
   const phone = document.getElementById('rxPhone').value.trim();
   const address = document.getElementById('rxAddress').value.trim();
 
-  if (!name || !phone || !address) return toast('⚠️ اكتب اسمك وهاتفك وعنوانك');
-  if (!currentUser) return toast('⚠️ سجل دخولك أولًا لإرسال الروشتة وحمايتها');
-  if (!rxBase64) return toast('⚠️ ارفع صورة الروشتة الأول');
+  if (!name || !phone || !address) return toast('اكتب اسمك وهاتفك وعنوانك');
+  if (!currentUser) return toast('سجل دخولك أولًا لإرسال الروشتة وحمايتها');
+  if (!rxBase64) return toast('ارفع صورة الروشتة الأول');
 
-  toast('⏳ جاري حفظ الطلب وإرساله للصيدلي...');
+  toast('جاري حفظ الطلب وإرساله للصيدلي...');
 
   try {
     const imageBase64 = rxBase64.split(',')[1];
     const mimeType = rxBase64.split(';')[0].split(':')[1] || 'image/jpeg';
     if (imageBase64.length > 14 * 1024 * 1024) {
-      return toast('⚠️ صورة الروشتة كبيرة جدًا، اختار صورة أصغر من 14MB');
+      return toast('صورة الروشتة كبيرة جدًا، اختار صورة أصغر من 14MB');
     }
 
     const rxOrderCode = 'RX-' + Date.now();
@@ -707,10 +707,10 @@ window.submitRxOrder = async () => {
 
     closeRx();
     clearRx();
-    toast('🎉 تم استلام الروشتة! تقدر تفتح طلبك من «طلباتي» وتتابع السعر والحالة.');
+    toast('<svg class="icon icon-sm" href="#icon-sparkles"></svg> تم استلام الروشتة! تقدر تفتح طلبك من «طلباتي» وتتابع السعر والحالة.');
   } catch (e) {
     console.error(e);
-    toast('❌ حصل خطأ أثناء حفظ الروشتة، حاول تاني');
+    toast('حصل خطأ أثناء حفظ الروشتة، حاول تاني');
   }
 };
 
